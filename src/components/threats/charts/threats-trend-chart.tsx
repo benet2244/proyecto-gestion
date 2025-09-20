@@ -1,6 +1,7 @@
+
 'use client';
 
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MonthlyThreatLog } from '@/lib/definitions';
 
@@ -31,6 +32,7 @@ export default function ThreatsTrendChart({ logData }: ThreatsTrendChartProps) {
                     <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
                 </linearGradient>
             </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis 
                 dataKey="name"
                 stroke="hsl(var(--muted-foreground))" 
@@ -43,7 +45,7 @@ export default function ThreatsTrendChart({ logData }: ThreatsTrendChartProps) {
                 fontSize={12} 
                 tickLine={false} 
                 axisLine={false}
-                tickFormatter={(value) => `${value / 1000}k`}
+                tickFormatter={(value) => typeof value === 'number' ? `${value / 1000}k` : ''}
             />
             <Tooltip
               cursor={{ fill: 'hsl(var(--secondary))' }}
@@ -53,7 +55,7 @@ export default function ThreatsTrendChart({ logData }: ThreatsTrendChartProps) {
                 borderRadius: 'var(--radius)',
               }}
             />
-            <Area type="monotone" dataKey="total" stroke="hsl(var(--chart-1))" fill="url(#colorTotal)" />
+            <Area type="monotone" dataKey="total" stroke="hsl(var(--chart-1))" fill="url(#colorTotal)" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
       </CardContent>

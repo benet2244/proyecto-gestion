@@ -1,12 +1,13 @@
 
 'use client';
 
-import { Pie, PieChart, ResponsiveContainer, Tooltip, Cell } from 'recharts';
+import { Pie, PieChart, ResponsiveContainer, Tooltip, Cell, Legend } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MonthlyThreatLog, ThreatCategories } from '@/lib/definitions';
 import { useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
-interface ThreatsByCategoryChartProps {
+interface ThreatsByCategoryPieChartProps {
   logData: MonthlyThreatLog;
 }
 
@@ -16,10 +17,9 @@ const COLORS = [
   'hsl(var(--chart-3))',
   'hsl(var(--chart-4))',
   'hsl(var(--chart-5))',
-  'hsl(var(--primary))',
 ];
 
-export default function ThreatsByCategoryChart({ logData }: ThreatsByCategoryChartProps) {
+export default function ThreatsByCategoryPieChart({ logData }: ThreatsByCategoryPieChartProps) {
   const chartData = useMemo(() => {
     const totals = ThreatCategories.reduce((acc, cat) => {
         acc[cat.key] = 0;
@@ -32,9 +32,10 @@ export default function ThreatsByCategoryChart({ logData }: ThreatsByCategoryCha
         });
     });
 
-    return ThreatCategories.map(cat => ({
+    return ThreatCategories.map((cat, index) => ({
         name: cat.label,
         value: totals[cat.key],
+        fill: COLORS[index % COLORS.length]
     })).filter(item => item.value > 0);
 
   }, [logData]);
@@ -44,11 +45,11 @@ export default function ThreatsByCategoryChart({ logData }: ThreatsByCategoryCha
       <CardHeader>
         <CardTitle className="font-headline">Threats by Category</CardTitle>
         <CardDescription>
-          Threat distribution for the selected period.
+          Distribution for the selected period.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={250}>
           <PieChart>
             <Tooltip
               cursor={{ fill: 'hsl(var(--secondary))' }}
@@ -64,15 +65,25 @@ export default function ThreatsByCategoryChart({ logData }: ThreatsByCategoryCha
               nameKey="name"
               cx="50%"
               cy="50%"
-              outerRadius={100}
+              innerRadius={60}
+              outerRadius={80}
+              paddingAngle={5}
               fill="hsl(var(--primary))"
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-              labelLine={false}
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
             </Pie>
+             <Legend 
+                iconSize={10}
+                layout="vertical" 
+                verticalAlign="middle" 
+                align="right"
+                formatter={(value, entry) => {
+                    const { color } = entry;
+                    return <span style={{ color }}>{value}</span>;
+                }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </CardContent>
