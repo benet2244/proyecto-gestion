@@ -647,52 +647,72 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
         {/* Accordion for other sections */}
         <Accordion type="multiple" className="w-full space-y-4" defaultValue={["workstream-assignment"]}>
             <AccordionItem value="workstream-assignment" className="border rounded-lg px-4 bg-card">
-                <AccordionTrigger className="font-headline text-lg">Workstream Assignment</AccordionTrigger>
+                <AccordionTrigger>
+                    <div className="font-headline text-lg">Workstream Assignment</div>
+                </AccordionTrigger>
                 <AccordionContent><WorkstreamAssignmentForm control={form.control} incident={incident} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="workstream-tracker" className="border rounded-lg px-4 bg-card">
-                <AccordionTrigger className="font-headline text-lg">Workstream Tracker</AccordionTrigger>
+                <AccordionTrigger>
+                     <div className="font-headline text-lg">Workstream Tracker</div>
+                </AccordionTrigger>
                 <AccordionContent><WorkstreamTrackerForm control={form.control} incident={incident} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="systems" className="border rounded-lg px-4 bg-card">
-                <AccordionTrigger className="font-headline text-lg">Systems</AccordionTrigger>
+                <AccordionTrigger>
+                     <div className="font-headline text-lg">Systems</div>
+                </AccordionTrigger>
                 <AccordionContent><SystemForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="host-indicators" className="border rounded-lg px-4 bg-card">
-                <AccordionTrigger className="font-headline text-lg">Host Indicators</AccordionTrigger>
+                <AccordionTrigger>
+                     <div className="font-headline text-lg">Host Indicators</div>
+                </AccordionTrigger>
                 <AccordionContent><HostIndicatorsForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="network-indicators" className="border rounded-lg px-4 bg-card">
-                <AccordionTrigger className="font-headline text-lg">Network Indicators</AccordionTrigger>
+                <AccordionTrigger>
+                     <div className="font-headline text-lg">Network Indicators</div>
+                </AccordionTrigger>
                 <AccordionContent><NetworkIndicatorsForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="intelligence" className="border rounded-lg px-4 bg-card">
-                <AccordionTrigger className="font-headline text-lg">Intelligence</AccordionTrigger>
+                <AccordionTrigger>
+                     <div className="font-headline text-lg">Intelligence</div>
+                </AccordionTrigger>
                 <AccordionContent><IntelligenceForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="evidence-tracker" className="border rounded-lg px-4 bg-card">
-                <AccordionTrigger className="font-headline text-lg">Evidence Tracker</AccordionTrigger>
+                <AccordionTrigger>
+                     <div className="font-headline text-lg">Evidence Tracker</div>
+                </AccordionTrigger>
                 <AccordionContent><EvidenceTrackerForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="application" className="border rounded-lg px-4 bg-card">
-                <AccordionTrigger className="font-headline text-lg">Application</AccordionTrigger>
+                <AccordionTrigger>
+                     <div className="font-headline text-lg">Application</div>
+                </AccordionTrigger>
                 <AccordionContent><ApplicationForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="forensic" className="border rounded-lg px-4 bg-card">
-                <AccordionTrigger className="font-headline text-lg">Forensic</AccordionTrigger>
+                <AccordionTrigger>
+                     <div className="font-headline text-lg">Forensic</div>
+                </AccordionTrigger>
                 <AccordionContent><ForensicForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="authorization" className="border rounded-lg px-4 bg-card">
-                <AccordionTrigger className="font-headline text-lg">Authorization</AccordionTrigger>
+                <AccordionTrigger>
+                     <div className="font-headline text-lg">Authorization</div>
+                </AccordionTrigger>
                 <AccordionContent><AuthorizationForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
