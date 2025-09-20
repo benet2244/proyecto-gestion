@@ -190,7 +190,7 @@ export default function ThreatsLog({ initialLogData }: ThreatsLogProps) {
                             />
                         </TableCell>
                     ))}
-                    <TableCell className="font-semibold">{entry.total.toLocaleString()}</TableCell>
+                    <TableCell className="font-semibold">{entry.total}</TableCell>
                 </TableRow>
                 ))}
             </TableBody>
@@ -198,9 +198,9 @@ export default function ThreatsLog({ initialLogData }: ThreatsLogProps) {
                 <TableRow>
                     <TableCell className="font-bold">TOTAL</TableCell>
                     {threatCategories.map(cat => (
-                         <TableCell key={cat.key} className="font-bold">{totals[cat.key].toLocaleString()}</TableCell>
+                         <TableCell key={cat.key} className="font-bold">{totals[cat.key]}</TableCell>
                     ))}
-                    <TableCell className="font-bold">{totals.total.toLocaleString()}</TableCell>
+                    <TableCell className="font-bold">{totals.total}</TableCell>
                 </TableRow>
             </TableFooter>
             </Table>
