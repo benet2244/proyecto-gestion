@@ -16,7 +16,8 @@ import DeleteButton from '@/components/shared/delete-button';
 import { format } from 'date-fns';
 
 async function getDetection(id: string): Promise<Detection | null> {
-    const res = await fetch(`http://localhost:9002/api/detections/${id}`, { cache: 'no-store' });
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const res = await fetch(`${baseUrl}/api/detections/${id}`, { cache: 'no-store' });
     if (!res.ok) return null;
     return res.json();
 }

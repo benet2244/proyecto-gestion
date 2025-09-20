@@ -11,14 +11,11 @@ import { getNewsArticles } from '@/lib/data';
 
 // In a real app, this data would be fetched from your API
 async function getDashboardData() {
-  // For now, we simulate fetching from an API. In a real app, you would use fetch()
-  // const incidentsRes = await fetch('http://localhost:9002/api/incidents', { cache: 'no-store' });
-  // const detectionsRes = await fetch('http://localhost:9002/api/detections', { cache: 'no-store' });
-  // const incidents = await incidentsRes.json();
-  // const detections = await detectionsRes.json();
-  const { getIncidents, getDetections } = await import('@/lib/data');
-  const incidents = getIncidents();
-  const detections = getDetections();
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const incidentsRes = await fetch(`${baseUrl}/api/incidents`, { cache: 'no-store' });
+  const detectionsRes = await fetch(`${baseUrl}/api/detections`, { cache: 'no-store' });
+  const incidents = await incidentsRes.json();
+  const detections = await detectionsRes.json();
   return { incidents, detections };
 }
 

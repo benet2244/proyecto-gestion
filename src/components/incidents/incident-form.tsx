@@ -557,7 +557,8 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
 
   async function onSubmit(data: FormValues) {
     setIsSubmitting(true);
-    const endpoint = isEditMode ? `/api/incidents/${incident?.id}` : '/api/incidents';
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const endpoint = isEditMode ? `${baseUrl}/api/incidents/${incident?.id}` : `${baseUrl}/api/incidents`;
     const method = isEditMode ? 'PUT' : 'POST';
 
     // TODO: Handle file uploads correctly. This is a placeholder.

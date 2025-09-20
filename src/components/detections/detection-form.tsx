@@ -124,7 +124,8 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
 
  async function onSubmit(data: z.infer<typeof FormSchema>) {
     setIsSubmitting(true);
-    const endpoint = isEditMode ? `/api/detections/${detection?.id}` : '/api/detections';
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const endpoint = isEditMode ? `${baseUrl}/api/detections/${detection?.id}` : `${baseUrl}/api/detections`;
     const method = isEditMode ? 'PUT' : 'POST';
 
     try {

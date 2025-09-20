@@ -6,10 +6,12 @@ import DetectionsTable from '@/components/detections/detections-table';
 import { Detection } from '@/lib/definitions';
 
 async function getDetectionsData(): Promise<Detection[]> {
-  // In a real app, you would fetch from an absolute URL.
-  // For this example, we use the in-memory data store via a function import.
-  const { getDetections } = await import('@/lib/data');
-  return getDetections();
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const res = await fetch(`${baseUrl}/api/detections`, { cache: 'no-store' });
+  if (!res.ok) {
+    throw new Error('Failed to fetch detections');
+  }
+  return res.json();
 }
 
 

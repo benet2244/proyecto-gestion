@@ -13,7 +13,8 @@ import { Detection } from '@/lib/definitions';
 
 
 async function getDetection(id: string): Promise<Detection | undefined> {
-    const res = await fetch(`http://localhost:9002/api/detections/${id}`, { cache: 'no-store' });
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const res = await fetch(`${baseUrl}/api/detections/${id}`, { cache: 'no-store' });
     if (!res.ok) return undefined;
     return res.json();
 }

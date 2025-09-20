@@ -12,8 +12,12 @@ import IncidentForm from '@/components/incidents/incident-form';
 import { Incident } from '@/lib/definitions';
 
 async function getIncident(id: string): Promise<Incident | undefined> {
-    const { getIncidentById } = await import('@/lib/data');
-    return getIncidentById(id);
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const res = await fetch(`${baseUrl}/api/incidents/${id}`, { cache: 'no-store' });
+    if (!res.ok) {
+        return undefined;
+    }
+    return res.json();
 }
 
 

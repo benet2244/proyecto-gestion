@@ -23,8 +23,8 @@ import DeleteButton from '@/components/shared/delete-button';
 import { format } from 'date-fns';
 
 async function getIncident(id: string): Promise<Incident | null> {
-  // In a real app, this would be an API call.
-  const res = await fetch(`http://localhost:9002/api/incidents/${id}`, { cache: 'no-store' });
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const res = await fetch(`${baseUrl}/api/incidents/${id}`, { cache: 'no-store' });
   if (!res.ok) return null;
   return res.json();
 }

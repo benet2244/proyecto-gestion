@@ -5,17 +5,12 @@ import IncidentsTable from '@/components/incidents/incidents-table';
 import { Incident } from '@/lib/definitions';
 
 async function getIncidentsData(): Promise<Incident[]> {
-  // In a real app, this fetch would go to an absolute URL of your deployed backend.
-  // const res = await fetch('http://localhost:9002/api/incidents', { cache: 'no-store' });
-  // if (!res.ok) {
-  //   // This will activate the closest `error.js` Error Boundary
-  //   throw new Error('Failed to fetch data')
-  // }
-  // return res.json();
-  
-  // For this example, we'll import from the data file directly.
-  const { getIncidents } = await import('@/lib/data');
-  return getIncidents();
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const res = await fetch(`${baseUrl}/api/incidents`, { cache: 'no-store' });
+  if (!res.ok) {
+    throw new Error('Failed to fetch data');
+  }
+  return res.json();
 }
 
 export default async function IncidentsPage() {
