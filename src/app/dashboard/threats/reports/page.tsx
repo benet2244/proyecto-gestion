@@ -4,6 +4,7 @@
 import { useState, useMemo, useRef } from "react";
 import { DateRange } from "react-day-picker";
 import { FileDown, Printer } from "lucide-react";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -83,9 +84,9 @@ export default function ThreatReportsPage() {
         if (link.download !== undefined) {
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            const fromDate = date?.from?.toLocaleDateString().replace(/\//g, '-') || 'start';
-            const toDate = date?.to?.toLocaleDateString().replace(/\//g, '-') || 'end';
-            link.setAttribute('download', `threat_report_${fromDate}_to_${toDate}.csv`);
+            const fromDateStr = date?.from ? format(date.from, "yyyy-MM-dd") : 'start';
+            const toDateStr = date?.to ? format(date.to, "yyyy-MM-dd") : 'end';
+            link.setAttribute('download', `threat_report_${fromDateStr}_to_${toDateStr}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
@@ -134,7 +135,7 @@ export default function ThreatReportsPage() {
                             Threat Report Preview
                         </h2>
                         <p className="text-center text-muted-foreground">
-                            {`Report for period: ${date?.from ? date.from.toLocaleDateString() : 'N/A'} - ${date?.to ? date.to.toLocaleDateString() : 'N/A'}`}
+                            {`Report for period: ${date?.from ? format(date.from, "dd/MM/yyyy") : 'N/A'} - ${date?.to ? format(date.to, "dd/MM/yyyy") : 'N/A'}`}
                         </p>
                         
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
