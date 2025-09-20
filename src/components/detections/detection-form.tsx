@@ -58,6 +58,12 @@ interface DetectionFormProps {
     detection?: Detection
 }
 
+const getTodayAtMidnight = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+}
+
 export default function DetectionForm({ detection }: DetectionFormProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
