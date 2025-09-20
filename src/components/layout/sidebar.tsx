@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Bookmark,
   ScanSearch,
+  BarChart3,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -34,6 +35,11 @@ export default function SidebarNav() {
       href: '/dashboard/detections',
       icon: ScanSearch,
       label: 'Detections',
+    },
+     {
+      href: '/dashboard/threats',
+      icon: BarChart3,
+      label: 'Threats',
     },
     {
       href: '/dashboard/news',

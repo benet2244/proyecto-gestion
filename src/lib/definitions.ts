@@ -52,6 +52,25 @@ export type Detection = {
   estado: 'Abierto' | 'Pendiente' | 'Cerrado';
 };
 
+export type ThreatCategory = 'malware' | 'phishing' | 'comando_control' | 'criptomineria' | 'denegacion_servicios' | 'intentos_conexion_bloqueados';
+
+export type ThreatLogEntry = {
+    day: number;
+    malware: number;
+    phishing: number;
+    comando_control: number;
+    criptomineria: number;
+    denegacion_servicios: number;
+    intentos_conexion_bloqueados: number;
+    total: number;
+};
+
+export type MonthlyThreatLog = {
+    year: number;
+    month: number; // 1-12
+    entries: ThreatLogEntry[];
+};
+
 
 // Schemas for Genkit Flows
 
