@@ -38,21 +38,21 @@ export default function ThreatSummaryCard({ logData }: ThreatSummaryCardProps) {
         <div className="flex flex-col items-center gap-2">
             <ShieldAlert className="h-10 w-10 text-destructive" />
             <p className="text-3xl font-bold">
-                {summaryStats.totalThreats.toLocaleString()}
+                {summaryStats.totalThreats}
             </p>
             <p className="text-sm text-muted-foreground">Total Threats</p>
         </div>
         <div className="flex flex-col items-center gap-2">
             <TrendingUp className="h-10 w-10 text-primary" />
             <p className="text-3xl font-bold">
-                {summaryStats.averageDailyThreats.toLocaleString()}
+                {summaryStats.averageDailyThreats}
             </p>
             <p className="text-sm text-muted-foreground">Avg. Daily Threats</p>
         </div>
          <div className="flex flex-col items-center gap-2">
             <Zap className="h-10 w-10 text-yellow-500" />
             <p className="text-3xl font-bold">
-                {summaryStats.peakDayTotal.toLocaleString()}
+                {summaryStats.peakDayTotal}
             </p>
             <p className="text-sm text-muted-foreground">Peak on {summaryStats.peakDayDate}</p>
         </div>

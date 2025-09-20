@@ -64,8 +64,8 @@ export default function ThreatDetailsTable({ logData }: ThreatDetailsTableProps)
                         <TableRow key={cat.key}>
                             <TableCell className="font-medium">{cat.label}</TableCell>
                             {/* NOTE: Currently showing same value. Will change when date-picker is wired */}
-                            <TableCell className="text-right">{monthlyTotals[cat.key].toLocaleString()}</TableCell>
-                            <TableCell className="text-right">{monthlyTotals[cat.key].toLocaleString()}</TableCell>
+                            <TableCell className="text-right">{monthlyTotals[cat.key]}</TableCell>
+                            <TableCell className="text-right">{monthlyTotals[cat.key]}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -73,10 +73,10 @@ export default function ThreatDetailsTable({ logData }: ThreatDetailsTableProps)
                     <TableRow>
                         <TableCell className="font-bold">TOTAL</TableCell>
                          <TableCell className="text-right font-bold">
-                            {Object.values(monthlyTotals).reduce((a, b) => a + b, 0).toLocaleString()}
+                            {Object.values(monthlyTotals).reduce((a, b) => a + b, 0)}
                         </TableCell>
                         <TableCell className="text-right font-bold">
-                            {Object.values(monthlyTotals).reduce((a, b) => a + b, 0).toLocaleString()}
+                            {Object.values(monthlyTotals).reduce((a, b) => a + b, 0)}
                         </TableCell>
                     </TableRow>
                 </TableFooter>
