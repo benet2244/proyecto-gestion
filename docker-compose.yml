@@ -1,64 +1,67 @@
-
 version: '3.8'
 
 services:
-  # Servicio de la Base de Datos MySQL
   db:
     image: mysql:8.0
     container_name: mysql-db
     restart: unless-stopped
-    env_file: ./.env # Lee las variables desde .env
+    env_file: .env
     environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./database:/docker-entrypoint-initdb.d
+      - ./database:/docker-entrypoint-initdb.d # Directorio para scripts de inicialización
     networks:
       - app-network
 
-  # Servicio del Backend (PHP + Apache)
-  php-apache-server:
+  php-apache:
     build:
-      context: ./php
+      context: ./php # Asumiendo que tienes un Dockerfile en una carpeta 'php'
     container_name: php-apache-server
     restart: unless-stopped
     depends_on:
       - db
-    env_file: ./.env # <--- AHORA EL BACKEND TAMBIÉN LEE EL .ENV
     ports:
-      - "8080:80"
+      - "8080:80" # Expone el puerto 80 del contenedor al 8080 del host
     volumes:
-      - ./backend:/var/www/html/backend
+      - ./backend:/var/www/html # Monta tu código PHP en el servidor web
+    environment:
+      # Pasa las variables de entorno de la DB al contenedor de PHP
+      - DB_HOST=db
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - app-network
 
-  # Servicio del Frontend (Next.js)
   next-app:
     build:
       context: .
+      dockerfile: Dockerfile
     container_name: next-app
     restart: unless-stopped
     depends_on:
-      - php-apache-server
+      - php-apache
     ports:
       - "3000:3000"
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-      - /usr/src/app/.next
+    environment:
+      # La URL base para que Next.js sepa dónde está el backend de PHP
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
     networks:
       - app-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
 
-# Red para la comunicación entre contenedores
 networks:
   app-network:
     driver: bridge
 
-# Volumen para la persistencia de datos de la base de datos
 volumes:
   mysql_data:

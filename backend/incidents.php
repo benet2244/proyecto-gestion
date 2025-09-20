@@ -4,21 +4,13 @@ require_once 'config.php';
 
 // --- CONFIGURACIÓN DE RESPUESTA Y CORS ---
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); // Para desarrollo. En producción, restríngelo a tu dominio de frontend.
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-
-// Manejar la solicitud pre-flight OPTIONS de CORS
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
 
 // --- CONEXIÓN A LA BASE DE DATOS ---
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($mysqli->connect_error) {
     http_response_code(500);
-    echo json_encode(['error' => 'Error de conexión a la base de datos: ' . $mysqli->connect_error]);
+    error_log('Error de conexión a la base de datos: ' . $mysqli->connect_error);
+    echo json_encode(['error' => 'Error de conexión a la base de datos.']);
     exit();
 }
 $mysqli->set_charset("utf8");
@@ -64,27 +56,35 @@ $mysqli->close();
 // --- FUNCIONES DE LÓGICA ---
 
 function get_all_incidents($mysqli) {
-    $result = $mysqli->query("SELECT * FROM incidents ORDER BY reportedAt DESC");
+    $result = $mysqli->query("SELECT id, title, description, severity, status, reportedAt FROM incidents ORDER BY reportedAt DESC");
+     if (!$result) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error al ejecutar la consulta: ' . $mysqli->error]);
+        return;
+    }
     $incidents = [];
-    if ($result) {
-        while ($row = $result->fetch_assoc()) {
-            // Decodificar campos JSON para que el frontend los reciba como objetos/arrays
-            $row['workstreamAssignment'] = json_decode($row['workstreamAssignment']);
-            $incidents[] = $row;
-        }
+    while ($row = $result->fetch_assoc()) {
+        $incidents[] = $row;
     }
     echo json_encode($incidents);
 }
 
 function get_incident($mysqli, $id) {
     $stmt = $mysqli->prepare("SELECT * FROM incidents WHERE id = ?");
+    if (!$stmt) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error al preparar la consulta: ' . $mysqli->error]);
+        return;
+    }
     $stmt->bind_param("s", $id);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result && $result->num_rows > 0) {
         $incident = $result->fetch_assoc();
-        $incident['workstreamAssignment'] = json_decode($incident['workstreamAssignment']);
+        // Decodificar campos JSON antes de enviarlos
+        $incident['workstreamAssignment'] = json_decode($incident['workstreamAssignment'], true);
+        // ... (decodificar otros campos JSON si los hay) ...
         echo json_encode($incident);
     } else {
         http_response_code(404);
@@ -95,20 +95,20 @@ function get_incident($mysqli, $id) {
 
 function create_incident($mysqli) {
     $data = json_decode(file_get_contents('php://input'), true);
-    if ($data === null) {
+    if (json_last_error() !== JSON_ERROR_NONE) {
         http_response_code(400);
         echo json_encode(['error' => 'Datos JSON inválidos']);
         return;
     }
 
-    // Generar un ID único (más robusto que el contador)
     $new_id = "INC-" . strtoupper(substr(uniqid(), -6));
     
-    // Lista de campos esperados
+    // Asignar valores desde $data o usar valores por defecto
     $title = $data['title'] ?? 'Sin Título';
     $description = $data['description'] ?? '';
     $severity = $data['severity'] ?? 'Baja';
     $status = $data['status'] ?? 'Identificación';
+    // Codificar campos que vienen como objetos/arrays a JSON
     $workstreamAssignment = json_encode($data['workstreamAssignment'] ?? []);
     $reportedAt = date('Y-m-d H:i:s');
 
@@ -118,6 +118,7 @@ function create_incident($mysqli) {
 
     if ($stmt->execute()) {
         http_response_code(201);
+        // Devolver el objeto creado con su nuevo ID y fecha
         $data['id'] = $new_id;
         $data['reportedAt'] = $reportedAt;
         echo json_encode($data);
@@ -136,13 +137,12 @@ function update_incident($mysqli, $id) {
     }
 
     $data = json_decode(file_get_contents('php://input'), true);
-    if ($data === null) {
+    if (json_last_error() !== JSON_ERROR_NONE) {
         http_response_code(400);
         echo json_encode(['error' => 'Datos JSON inválidos']);
         return;
     }
 
-    // Campos permitidos para actualización
     $allowed_fields = ['title', 'description', 'severity', 'status', 'workstreamAssignment'];
     $updates = [];
     $params = [];
@@ -150,43 +150,38 @@ function update_incident($mysqli, $id) {
 
     foreach ($data as $key => $value) {
         if (in_array($key, $allowed_fields)) {
-            $updates[] = "$key = ?";
+            $updates[] = "`$key` = ?";
             
-            // Si es un array/objeto, lo codificamos como JSON
+            // Si el valor es un array u objeto, codificarlo a JSON
             if (is_array($value) || is_object($value)) {
                 $params[] = json_encode($value);
             } else {
                 $params[] = $value;
             }
-            $types .= "s"; // Tratar todos los params como strings
+            $types .= "s";
         }
     }
 
-    if (count($updates) > 0) {
-        $sql = "UPDATE incidents SET " . implode(', ', $updates) . " WHERE id = ?";
-        $types .= "s"; // Añadir el tipo para el ID
-        $params[] = $id;
-
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-
-        if ($stmt->execute()) {
-            if ($stmt->affected_rows > 0) {
-                 get_incident($mysqli, $id); // Devuelve el incidente actualizado
-            } else {
-                // Si no se afectaron filas, puede que los datos enviados fueran los mismos
-                // o que el incidente no existiera.
-                 get_incident($mysqli, $id);
-            }
-        } else {
-            http_response_code(500);
-            echo json_encode(['error' => 'Error al actualizar el incidente: ' . $stmt->error]);
-        }
-        $stmt->close();
-    } else {
+    if (empty($updates)) {
         http_response_code(400);
         echo json_encode(['error' => 'No se proporcionaron campos válidos para actualizar']);
+        return;
     }
+
+    $sql = "UPDATE incidents SET " . implode(', ', $updates) . " WHERE id = ?";
+    $types .= "s";
+    $params[] = $id;
+
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+
+    if ($stmt->execute()) {
+        get_incident($mysqli, $id); // Devuelve el incidente actualizado
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error al actualizar el incidente: ' . $stmt->error]);
+    }
+    $stmt->close();
 }
 
 function delete_incident($mysqli, $id) {
@@ -213,5 +208,4 @@ function delete_incident($mysqli, $id) {
     }
     $stmt->close();
 }
-
 ?>

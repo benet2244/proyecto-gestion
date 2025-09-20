@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Pie, PieChart, ResponsiveContainer, Tooltip, Cell, Legend } from 'recharts';
@@ -9,11 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Detection } from '@/lib/definitions';
+import { ThreatLog } from '@/lib/definitions'; 
 import { useMemo } from 'react';
 
-interface DetectionsPriorityChartProps {
-  detections: Detection[];
+interface ThreatLogPriorityChartProps {
+  threatLogs: ThreatLog[];
 }
 
 const COLORS = {
@@ -23,33 +22,30 @@ const COLORS = {
   'Crítica': 'hsl(var(--destructive))',
 };
 
-const priorities: Array<Detection['prioridad']> = ['Baja', 'Media', 'Alta', 'Crítica'];
+const priorities: Array<ThreatLog['prioridad']> = ['Baja', 'Media', 'Alta', 'Crítica'];
 
-
-export default function DetectionsPriorityChart({ detections }: DetectionsPriorityChartProps) {
+export default function ThreatLogPriorityChart({ threatLogs }: ThreatLogPriorityChartProps) {
   const chartData = useMemo(() => {
-    const data = priorities.map((priority) => ({
+    return priorities.map((priority) => ({
       name: priority,
-      value: detections.filter((detection) => detection.prioridad === priority).length,
+      value: threatLogs.filter((log) => log.prioridad === priority).length,
       fill: COLORS[priority],
     })).filter(item => item.value > 0);
 
-    return data;
-  }, [detections]);
+  }, [threatLogs]);
 
-  const totalDetections = useMemo(() => chartData.reduce((acc, curr) => acc + curr.value, 0), [chartData]);
-
+  const totalThreatLogs = useMemo(() => chartData.reduce((acc, curr) => acc + curr.value, 0), [chartData]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Detections by Priority</CardTitle>
+        <CardTitle className="font-headline">Threat Logs by Priority</CardTitle>
         <CardDescription>
-          Distribution of all logged detections by priority level.
+          Distribution of all logged threats by priority level.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {detections.length > 0 ? (
+        {totalThreatLogs > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
                  <Tooltip
@@ -89,7 +85,7 @@ export default function DetectionsPriorityChart({ detections }: DetectionsPriori
           </ResponsiveContainer>
         ) : (
             <div className="flex h-[300px] w-full items-center justify-center">
-                <p className="text-muted-foreground">No detection data available.</p>
+                <p className="text-muted-foreground">No threat log data available.</p>
             </div>
         )}
       </CardContent>

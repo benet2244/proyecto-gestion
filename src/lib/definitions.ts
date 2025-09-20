@@ -138,7 +138,7 @@ export type NewsArticle = {
   content: string;
 };
 
-export type Detection = {
+export type ThreatLog = {
   id: string;
   tipo_incidente: string;
   prioridad: 'Baja' | 'Media' | 'Alta' | 'Crítica';

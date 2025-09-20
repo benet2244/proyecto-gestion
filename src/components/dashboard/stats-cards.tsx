@@ -4,33 +4,29 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Incident, Detection } from '@/lib/definitions';
+import { Incident, ThreatLog } from '@/lib/definitions';
 import {
   Activity,
-  AlertTriangle,
-  CheckCircle,
-  ShieldAlert,
-  ScanSearch,
   Siren,
+  ScanSearch,
   BarChart3,
 } from 'lucide-react';
 import { formatNumber } from '@/lib/utils';
 
 interface StatsCardsProps {
   incidents: Incident[];
-  detections: Detection[];
+  threatLogs: ThreatLog[];
   totalThreats: number;
 }
 
-export default function StatsCards({ incidents, detections, totalThreats }: StatsCardsProps) {
+export default function StatsCards({ incidents, threatLogs, totalThreats }: StatsCardsProps) {
   const openIncidents = incidents.filter(
-    (i) => i.status === 'Open' || i.status === 'In Progress'
+    (i) => i.status !== 'Cerrado'
   ).length;
 
-  const criticalDetections = detections.filter(
-    (d) => d.prioridad === 'Crítica' || d.prioridad === 'Alta'
+  const criticalThreats = threatLogs.filter(
+    (log) => log.prioridad === 'Crítica' || log.prioridad === 'Alta'
   ).length;
-
 
   const stats = [
     {
@@ -39,13 +35,13 @@ export default function StatsCards({ incidents, detections, totalThreats }: Stat
       icon: Activity,
     },
     {
-      title: 'Total Detections',
-      value: detections.length,
+      title: 'Total Threat Logs',
+      value: threatLogs.length,
       icon: ScanSearch,
     },
     {
-      title: 'High/Critical Detections',
-      value: criticalDetections,
+      title: 'High/Critical Threats',
+      value: criticalThreats,
       icon: Siren,
     },
     {

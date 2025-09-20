@@ -4,21 +4,13 @@ require_once 'config.php';
 
 // --- CONFIGURACIÓN DE RESPUESTA Y CORS ---
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-// Manejar la solicitud pre-flight OPTIONS de CORS
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-// --- CONEXIÓN A LA BASE DE DATOS ---
+// --- CONEXIÓN A LA BASE DE DATOS (Usando MySQLi) ---
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($mysqli->connect_error) {
     http_response_code(500);
-    echo json_encode(['error' => 'Error de conexión a la base de datos: ' . $mysqli->connect_error]);
+    error_log('Error de conexión a la base de datos: ' . $mysqli->connect_error);
+    echo json_encode(['error' => 'Error de conexión a la base de datos.']);
     exit();
 }
 $mysqli->set_charset("utf8");
@@ -57,17 +49,25 @@ $mysqli->close();
 
 function get_all_detections($mysqli) {
     $result = $mysqli->query("SELECT * FROM detections ORDER BY fecha_incidente DESC");
+    if (!$result) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error al ejecutar la consulta: ' . $mysqli->error]);
+        return;
+    }
     $detections = [];
-    if ($result) {
-        while ($row = $result->fetch_assoc()) {
-            $detections[] = $row;
-        }
+    while ($row = $result->fetch_assoc()) {
+        $detections[] = $row;
     }
     echo json_encode($detections);
 }
 
 function get_detection($mysqli, $id) {
     $stmt = $mysqli->prepare("SELECT * FROM detections WHERE id = ?");
+    if (!$stmt) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error al preparar la consulta: ' . $mysqli->error]);
+        return;
+    }
     $stmt->bind_param("s", $id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -84,7 +84,7 @@ function get_detection($mysqli, $id) {
 
 function create_detection($mysqli) {
     $data = json_decode(file_get_contents('php://input'), true);
-    if ($data === null) {
+    if (json_last_error() !== JSON_ERROR_NONE) {
         http_response_code(400);
         echo json_encode(['error' => 'Datos JSON inválidos']);
         return;
@@ -92,31 +92,43 @@ function create_detection($mysqli) {
 
     $id = "DET-" . strtoupper(substr(uniqid(), -6));
     
-    // Lista de campos esperados
+    // Lista de campos esperados y sus valores por defecto
     $fields = [
-        'tipo_incidente', 'prioridad', 'fecha_incidente', 'responsable', 
-        'equipo_afectado', 'direccion_mac', 'dependencia', 'estado_equipo', 
-        'acciones_tomadas', 'hash', 'detalles', 'estado', 'nivel_amenaza'
+        'tipo_incidente' => null, 'prioridad' => 'Media', 'fecha_incidente' => null, 'responsable' => null, 
+        'equipo_afectado' => null, 'direccion_mac' => null, 'dependencia' => null, 'estado_equipo' => 'En Alerta', 
+        'acciones_tomadas' => null, 'hash' => null, 'detalles' => null, 'estado' => 'Abierto', 'nivel_amenaza' => 'Desconocido'
     ];
     
-    $values = [];
-    foreach ($fields as $field) {
-        $values[] = $data[$field] ?? null;
+    $columns = ['id'];
+    $placeholders = ['?'];
+    $values = [$id];
+    $types = 's';
+
+    foreach ($fields as $field => $default) {
+        $columns[] = $field;
+        $placeholders[] = '?';
+        $values[] = $data[$field] ?? $default;
+        $types .= 's'; // Tratar todos como strings para bind_param
+    }
+    
+    // Formatear la fecha si está presente
+    $date_index = array_search('fecha_incidente', $columns);
+    if ($date_index !== false && $values[$date_index]) {
+        $values[$date_index] = date('Y-m-d H:i:s', strtotime($values[$date_index]));
     }
 
-    $sql = "INSERT INTO detections (id, " . implode(", ", $fields) . ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO detections (" . implode(", ", $columns) . ") VALUES (" . implode(", ", $placeholders) . ")";
     $stmt = $mysqli->prepare($sql);
     
-    $types = 's' . str_repeat('s', count($fields));
-    $stmt->bind_param($types, $id, ...$values);
+    $stmt->bind_param($types, ...$values);
 
     if ($stmt->execute()) {
         http_response_code(201);
-        $data['id'] = $id;
+        $data['id'] = $id; // Añadir el ID generado al objeto de respuesta
         echo json_encode($data);
     } else {
         http_response_code(500);
-        echo json_encode(['error' => 'Error al crear la detección: ' . $stmt->error]);
+        echo json_encode(['error' => 'Error al crear la detección: ' . $stmt->error, 'sql' => $sql]);
     }
     $stmt->close();
 }
@@ -129,7 +141,7 @@ function update_detection($mysqli, $id) {
     }
 
     $data = json_decode(file_get_contents('php://input'), true);
-    if ($data === null) {
+    if (json_last_error() !== JSON_ERROR_NONE) {
         http_response_code(400);
         echo json_encode(['error' => 'Datos JSON inválidos']);
         return;
@@ -147,32 +159,40 @@ function update_detection($mysqli, $id) {
 
     foreach ($data as $key => $value) {
         if (in_array($key, $allowed_fields)) {
-            $updates[] = "$key = ?";
-            $params[] = $value;
+            $updates[] = "`$key` = ?";
+            
+            // Formatear la fecha si es el campo de fecha
+            if ($key === 'fecha_incidente' && $value) {
+                 $params[] = date('Y-m-d H:i:s', strtotime($value));
+            } else {
+                 $params[] = $value;
+            }
             $types .= "s";
         }
     }
 
-    if (count($updates) > 0) {
-        $sql = "UPDATE detections SET " . implode(', ', $updates) . " WHERE id = ?";
-        $types .= "s";
-        $params[] = $id;
-
-        $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-
-        if ($stmt->execute()) {
-            get_detection($mysqli, $id);
-        } else {
-            http_response_code(500);
-            echo json_encode(['error' => 'Error al actualizar la detección: ' . $stmt->error]);
-        }
-        $stmt->close();
-    } else {
+    if (empty($updates)) {
         http_response_code(400);
         echo json_encode(['error' => 'No se proporcionaron campos válidos para actualizar']);
+        return;
     }
+
+    $sql = "UPDATE detections SET " . implode(', ', $updates) . " WHERE id = ?";
+    $types .= "s";
+    $params[] = $id;
+
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param($types, ...$params);
+
+    if ($stmt->execute()) {
+        get_detection($mysqli, $id); // Devuelve el objeto actualizado
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Error al actualizar la detección: ' . $stmt->error]);
+    }
+    $stmt->close();
 }
+
 
 function delete_detection($mysqli, $id) {
     if (!$id) {

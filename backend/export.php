@@ -5,8 +5,6 @@ require_once 'config.php';
 // --- CONEXIÓN A LA BASE DE DATOS ---
 $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($mysqli->connect_error) {
-    // No se puede enviar JSON aquí porque el cliente espera un archivo.
-    // Simplemente termina la ejecución.
     die('Error de conexión a la base de datos: ' . $mysqli->connect_error);
 }
 $mysqli->set_charset("utf8");
@@ -29,7 +27,6 @@ header('Content-Disposition: attachment; filename="' . $filename . '"');
 $output = fopen('php://output', 'w');
 
 // Escribir la fila de encabezados del CSV
-// (Asegúrate de que estos nombres de columna coincidan con tu tabla)
 fputcsv($output, [
     'ID',
     'Título',
@@ -43,8 +40,17 @@ fputcsv($output, [
 // Iterar sobre los resultados de la base de datos y escribir cada fila en el CSV
 while ($row = $result->fetch_assoc()) {
     // Convertir datos complejos (como JSON) a una cadena legible para el CSV
-    $workstream = isset($row['workstreamAssignment']) ? json_decode($row['workstreamAssignment']) : [];
-    $workstream_str = is_array($workstream) ? implode(", ", $workstream) : '';
+    $workstreamAssignment = isset($row['workstreamAssignment']) ? json_decode($row['workstreamAssignment']) : null;
+    $workstream_str = '';
+    if (is_object($workstreamAssignment)) {
+        $assignments = [];
+        foreach ($workstreamAssignment as $role => $name) {
+            if (!empty($name)) {
+                $assignments[] = ucfirst($role) . ": " . $name;
+            }
+        }
+        $workstream_str = implode("; ", $assignments);
+    }
 
     fputcsv($output, [
         $row['id'],

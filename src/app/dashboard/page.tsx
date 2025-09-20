@@ -1,65 +1,52 @@
-import DetectionsPriorityChart from '@/components/dashboard/detections-priority-chart';
 import StatsCards from '@/components/dashboard/stats-cards';
-import DetectionsTable from '@/components/detections/detections-table';
-import { sampleThreatLogs } from '@/lib/data/threats';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Incident, Detection, NewsArticle } from '@/lib/definitions';
-import { getNewsArticles } from '@/lib/data';
+import ThreatLogPriorityChart from '@/components/dashboard/threat-log-priority-chart';
+import ThreatLogTable from '@/components/threat-log/threat-log-table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getIncidents, getThreatLogs } from '@/lib/actions';
+import { Incident, ThreatLog } from '@/lib/definitions';
 
-
-// In a real app, this data would be fetched from your API
 async function getDashboardData() {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const incidentsRes = await fetch(`${baseUrl}/api/incidents`, { cache: 'no-store' });
-  const detectionsRes = await fetch(`${baseUrl}/api/detections`, { cache: 'no-store' });
-  const incidents = await incidentsRes.json();
-  const detections = await detectionsRes.json();
-  return { incidents, detections };
+  const incidents: Incident[] = await getIncidents();
+  const threatLogs: ThreatLog[] = await getThreatLogs();
+  return { incidents, threatLogs };
 }
 
 export default async function DashboardPage() {
-  const { incidents, detections } = await getDashboardData();
-  const recentDetections = [...detections].sort((a, b) => new Date(b.fecha_incidente).getTime() - new Date(a.fecha_incidente).getTime()).slice(0, 5);
-  const monthlyThreats = sampleThreatLogs.find(log => log.year === 2025 && log.month === 9)?.entries.reduce((sum, entry) => sum + entry.total, 0) || 0;
-  
-  const allNews = await getNewsArticles();
-  const recentNews = allNews.slice(0, 3);
+  const { incidents, threatLogs } = await getDashboardData();
+
+  // Ordenar logs y obtener los 5 más recientes
+  const recentThreatLogs = [...threatLogs]
+    .sort((a, b) => new Date(b.fecha_incidente).getTime() - new Date(a.fecha_incidente).getTime())
+    .slice(0, 5);
+
+  // Calcular el total de amenazas para el mes actual para la tarjeta de estadísticas
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const threatsThisMonth = threatLogs.filter(log => new Date(log.fecha_incidente) >= startOfMonth).length;
+
 
   return (
-    <div className="space-y-6">
-      <StatsCards incidents={incidents} detections={detections} totalThreats={monthlyThreats} />
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3 space-y-6">
-          <DetectionsPriorityChart detections={detections} />
-           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="font-headline">Recent News</CardTitle>
-                <Button variant="outline" size="sm" asChild>
-                    <Link href="/dashboard/news">View All</Link>
-                </Button>
+    <div className="grid gap-6">
+        <StatsCards 
+            incidents={incidents} 
+            threatLogs={threatLogs} 
+            totalThreats={threatsThisMonth} 
+        />
+
+        <div className="grid lg:grid-cols-2 gap-6">
+            <ThreatLogPriorityChart threatLogs={threatLogs} />
+            {/* Aquí puedes añadir otro gráfico o componente */}
+        </div>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Registros de Amenazas Recientes</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                 {recentNews.map(article => (
-                    <div key={article.id} className='text-sm'>
-                         <img src={article.imageUrl} alt={article.title} className="aspect-[16/9] w-full rounded-md object-cover mb-2" />
-                        <p className="font-semibold mb-1 leading-tight hover:underline">
-                            <Link href={article.url} target="_blank">{article.title}</Link>
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                            {article.source} &middot; {new Date(article.publishedAt).toLocaleDateString()}
-                        </p>
-                    </div>
-                ))}
+            <CardContent>
+                <ThreatLogTable threatLogs={recentThreatLogs} />
             </CardContent>
-           </Card>
-        </div>
-        <div className="lg:col-span-2">
-            <h2 className="text-xl font-headline mb-4">Recent Detections</h2>
-            <DetectionsTable detections={recentDetections} isDashboard={true} />
-        </div>
-      </div>
+        </Card>
+
     </div>
   );
 }

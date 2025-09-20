@@ -9,10 +9,10 @@ $backupFile = 'backup_detections_' . date("Y-m-d_H-i-s") . '.sql';
 // --- CONSTRUCCIÓN DEL COMANDO MYSqldump ---
 $command = sprintf(
     'mysqldump --user=%s --password=%s --host=%s %s %s > %s',
-    escapeshellarg(DB_USER),
-    escapeshellarg(DB_PASS),
-    escapeshellarg(DB_HOST),
-    escapeshellarg(DB_NAME),
+    escapeshellarg(getenv('DB_USER')),
+    escapeshellarg(getenv('DB_PASSWORD')),
+    escapeshellarg(getenv('DB_HOST')),
+    escapeshellarg(getenv('DB_DATABASE')),
     escapeshellarg($tableName),
     escapeshellarg($backupFile)
 );

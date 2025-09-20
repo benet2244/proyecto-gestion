@@ -25,16 +25,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
-import { Detection } from '@/lib/definitions';
+import { ThreatLog } from '@/lib/definitions';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import DeleteButton from '@/components/shared/delete-button';
 import React from 'react';
 
-
-interface DetectionsTableProps {
-  detections: Detection[];
+interface ThreatLogTableProps {
+  threatLogs: ThreatLog[];
   isDashboard?: boolean;
 }
 
@@ -46,13 +45,12 @@ const threatLevelVariant: { [key: string]: 'default' | 'secondary' | 'destructiv
   'Crítico': 'destructive',
 };
 
-export default function DetectionsTable({ detections, isDashboard = false }: DetectionsTableProps) {
+export default function ThreatLogTable({ threatLogs, isDashboard = false }: ThreatLogTableProps) {
   const router = useRouter();
 
   const handleViewDetails = (id: string) => {
-    router.push(`/dashboard/detections/${id}`);
+    router.push(`/dashboard/threat-log/${id}`);
   };
-
 
   const TableContent = () => (
      <Table>
@@ -68,18 +66,18 @@ export default function DetectionsTable({ detections, isDashboard = false }: Det
         </TableRow>
       </TableHeader>
       <TableBody>
-        {detections.map((detection) => (
-          <TableRow key={detection.id}>
+        {threatLogs.map((threatLog) => (
+          <TableRow key={threatLog.id}>
             <TableCell>
-              <div className="font-medium">{detection.equipo_afectado}</div>
+              <div className="font-medium">{threatLog.equipo_afectado}</div>
             </TableCell>
             <TableCell>
-              <Badge variant={threatLevelVariant[detection.nivel_amenaza] || 'default'} className={cn(detection.nivel_amenaza === "Medio" && "bg-yellow-500 text-white")}>
-                {detection.nivel_amenaza}
+              <Badge variant={threatLevelVariant[threatLog.nivel_amenaza] || 'default'} className={cn(threatLog.nivel_amenaza === "Medio" && "bg-yellow-500 text-white")}>
+                {threatLog.nivel_amenaza}
               </Badge>
             </TableCell>
-            {!isDashboard && <TableCell>{detection.dependencia}</TableCell>}
-            {!isDashboard && <TableCell>{detection.tipo_incidente}</TableCell>}
+            {!isDashboard && <TableCell>{threatLog.dependencia}</TableCell>}
+            {!isDashboard && <TableCell>{threatLog.tipo_incidente}</TableCell>}
             <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -89,14 +87,14 @@ export default function DetectionsTable({ detections, isDashboard = false }: Det
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleViewDetails(detection.id)}>
-                      View Details
+                    <DropdownMenuItem onClick={() => handleViewDetails(threatLog.id)}>
+                      Ver Detalles
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/detections/${detection.id}/edit`}>Edit</Link>
+                      <Link href={`/dashboard/threat-log/${threatLog.id}/edit`}>Editar</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                       <DeleteButton id={detection.id} type="detection" asDropdownMenuItem />
+                       <DeleteButton id={threatLog.id} type="threat-log" asDropdownMenuItem />
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -120,9 +118,9 @@ export default function DetectionsTable({ detections, isDashboard = false }: Det
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">All Detections</CardTitle>
+        <CardTitle className="font-headline">Todos los Registros de Amenazas</CardTitle>
         <CardDescription>
-          A list of all cybersecurity detections.
+          Una lista de todos los registros de amenazas de ciberseguridad.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -130,7 +128,7 @@ export default function DetectionsTable({ detections, isDashboard = false }: Det
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">
-          Showing <strong>1-{detections.length}</strong> of <strong>{detections.length}</strong> detections
+          Mostrando <strong>1-{threatLogs.length}</strong> de <strong>{threatLogs.length}</strong> registros
         </div>
       </CardFooter>
     </Card>
