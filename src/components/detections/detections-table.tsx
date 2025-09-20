@@ -23,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { Detection } from '@/lib/definitions';
 import { useRouter } from 'next/navigation';
