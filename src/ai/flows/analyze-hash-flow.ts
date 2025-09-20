@@ -4,12 +4,12 @@
  * @fileOverview Analyzes a file hash using the VirusTotal API to determine its threat level.
  *
  * - analyzeHash - A function that takes a hash and returns a threat analysis.
- * - AnalyzeHashInput - The input type for the analyzeHash function.
- * - AnalyzeHashOutput - The return type for the analyzeHash function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import type { AnalyzeHashInput, AnalyzeHashOutput } from '@/lib/definitions';
+import { AnalyzeHashInputSchema, AnalyzeHashOutputSchema } from '@/lib/definitions';
+
 
 const threatLevelThresholds = {
     'Crítico': 20,
@@ -19,26 +19,9 @@ const threatLevelThresholds = {
     'No Detectado': 0, 
 };
 
-// --- SCHEMA DEFINITIONS ---
-
-export const AnalyzeHashInputSchema = z.object({
-  hash: z.string().describe('The file hash (MD5, SHA1, or SHA256) to analyze.'),
-});
-export type AnalyzeHashInput = z.infer<typeof AnalyzeHashInputSchema>;
-
-export const AnalyzeHashOutputSchema = z.object({
-  threatLevel: z.enum(['Crítico', 'Alto', 'Medio', 'Bajo', 'No Detectado', 'Desconocido']),
-  maliciousCount: z.number().describe('Number of engines that detected the hash as malicious.'),
-  totalScans: z.number().describe('Total number of engines that scanned the hash.'),
-  virusType: z.string().optional().describe('The general type of malware detected (e.g., Trojan, Ransomware).'),
-  virusName: z.string().optional().describe('Specific names of the detected malware.'),
-});
-export type AnalyzeHashOutput = z.infer<typeof AnalyzeHashOutputSchema>;
-
-
 // --- HELPER FUNCTIONS ---
 
-function determineThreatLevel(maliciousCount: number): z.infer<typeof AnalyzeHashOutputSchema>['threatLevel'] {
+function determineThreatLevel(maliciousCount: number): AnalyzeHashOutput['threatLevel'] {
     if (maliciousCount >= threatLevelThresholds['Crítico']) return 'Crítico';
     if (maliciousCount >= threatLevelThresholds['Alto']) return 'Alto';
     if (maliciousCount >= threatLevelThresholds['Medio']) return 'Medio';

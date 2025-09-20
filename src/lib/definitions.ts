@@ -1,3 +1,4 @@
+import { z } from 'zod';
 
 export type Incident = {
   id: string;
@@ -50,3 +51,20 @@ export type Detection = {
   detalles: string;
   estado: 'Abierto' | 'Pendiente' | 'Cerrado';
 };
+
+
+// Schemas for Genkit Flows
+
+export const AnalyzeHashInputSchema = z.object({
+  hash: z.string().describe('The file hash (MD5, SHA1, or SHA256) to analyze.'),
+});
+export type AnalyzeHashInput = z.infer<typeof AnalyzeHashInputSchema>;
+
+export const AnalyzeHashOutputSchema = z.object({
+  threatLevel: z.enum(['Crítico', 'Alto', 'Medio', 'Bajo', 'No Detectado', 'Desconocido']),
+  maliciousCount: z.number().describe('Number of engines that detected the hash as malicious.'),
+  totalScans: z.number().describe('Total number of engines that scanned the hash.'),
+  virusType: z.string().optional().describe('The general type of malware detected (e.g., Trojan, Ransomware).'),
+  virusName: z.string().optional().describe('Specific names of the detected malware.'),
+});
+export type AnalyzeHashOutput = z.infer<typeof AnalyzeHashOutputSchema>;
