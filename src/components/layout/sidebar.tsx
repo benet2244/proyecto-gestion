@@ -12,6 +12,9 @@ import {
   BarChart3,
   AreaChart,
   FileDown,
+  Download,
+  Database,
+  FileJson,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -60,11 +63,25 @@ export default function SidebarNav() {
       href: '/dashboard/news',
       icon: Newspaper,
       label: 'News Feed',
+      separator: true,
     },
     {
       href: '/dashboard/news/saved',
       icon: Bookmark,
       label: 'Saved News',
+    },
+  ];
+
+    const utilityItems = [
+    {
+      href: '/api/backup',
+      icon: Database,
+      label: 'Download Backup',
+    },
+    {
+      href: '/api/structure',
+      icon: FileJson,
+      label: 'Download System Structure',
     },
   ];
 
@@ -82,10 +99,11 @@ export default function SidebarNav() {
       <div className="flex-1 overflow-auto py-4">
         <div className="flex-1">
           <ul className="grid items-start px-4 text-sm font-medium">
-            {navItems.map(({ href, icon: Icon, label, exact }) => {
+            {navItems.map(({ href, icon: Icon, label, exact, separator }) => {
               const isActive = exact ? pathname === href : pathname.startsWith(href);
-              if (label === 'News Feed') {
-                return (
+              
+              if (separator) {
+                 return (
                   <div key={label}>
                     <Separator className="my-4" />
                     <Link href={href}>
@@ -100,6 +118,7 @@ export default function SidebarNav() {
                   </div>
                 )
               }
+
               return (
               <li key={label}>
                 <Link href={href}>
@@ -114,6 +133,25 @@ export default function SidebarNav() {
               </li>
             )})}
           </ul>
+        </div>
+         <Separator className="my-4" />
+         <div className="px-4 text-sm font-medium">
+             <h3 className="mb-2 text-muted-foreground px-2">Utilities</h3>
+             <ul className="grid items-start">
+             {utilityItems.map(({ href, icon: Icon, label }) => (
+                <li key={label}>
+                    <Link href={href} target="_blank" rel="noopener noreferrer">
+                        <Button
+                            variant={'ghost'}
+                            className="w-full justify-start"
+                        >
+                            <Icon className="mr-2 h-4 w-4" />
+                            {label}
+                        </Button>
+                    </Link>
+                </li>
+             ))}
+             </ul>
         </div>
       </div>
     </nav>
