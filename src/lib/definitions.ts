@@ -44,7 +44,7 @@ export type Detection = {
   equipo_afectado: string;
   direccion_mac: string;
   dependencia: string;
-  estado_equipo: string;
+  estado_equipo: 'Infectado' | 'Mitigado' | 'En Alerta';
   acciones_tomadas: string;
   hash: string;
   nivel_amenaza: 'No Detectado' | 'Bajo' | 'Medio' | 'Alto' | 'Crítico' | 'Desconocido';

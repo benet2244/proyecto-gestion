@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -45,7 +46,7 @@ const FormSchema = z.object({
   equipo_afectado: z.string().min(1, "Equipo afectado es requerido."),
   direccion_mac: z.string().optional(),
   dependencia: z.string().min(1, "Dependencia es requerida."),
-  estado_equipo: z.string().min(1, "Estado del equipo es requerido."),
+  estado_equipo: z.enum(["Infectado", "Mitigado", "En Alerta"]),
   acciones_tomadas: z.string().min(1, "Acciones tomadas son requeridas."),
   hash: z.string().optional(),
   detalles: z.string().min(1, "Detalles son requeridos."),
@@ -70,7 +71,7 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
         equipo_afectado: detection?.equipo_afectado || "",
         direccion_mac: detection?.direccion_mac || "",
         dependencia: detection?.dependencia || "",
-        estado_equipo: detection?.estado_equipo || "",
+        estado_equipo: detection?.estado_equipo || "En Alerta",
         acciones_tomadas: detection?.acciones_tomadas || "",
         hash: detection?.hash || "",
         detalles: detection?.detalles || "",
@@ -268,15 +269,22 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
                     </FormItem>
                 )}
             />
-             <FormField
+            <FormField
                 control={form.control}
                 name="estado_equipo"
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Estado del Equipo</FormLabel>
-                    <FormControl>
-                        <Input placeholder="e.g., Operativo, Lento, Aislado" {...field} />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Seleccione un estado" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="Infectado">Infectado</SelectItem>
+                            <SelectItem value="Mitigado">Mitigado</SelectItem>
+                            <SelectItem value="En Alerta">En Alerta</SelectItem>
+                        </SelectContent>
+                    </Select>
                     <FormMessage />
                     </FormItem>
                 )}
