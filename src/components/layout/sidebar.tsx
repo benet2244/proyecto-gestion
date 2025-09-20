@@ -9,6 +9,7 @@ import {
   Bookmark,
   ScanSearch,
   BarChart3,
+  AreaChart,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -39,7 +40,13 @@ export default function SidebarNav() {
      {
       href: '/dashboard/threats',
       icon: BarChart3,
-      label: 'Threats',
+      label: 'Threats Log',
+      exact: true,
+    },
+    {
+      href: '/dashboard/threats/analytics',
+      icon: AreaChart,
+      label: 'Threats Analytics',
     },
     {
       href: '/dashboard/news',
@@ -67,11 +74,13 @@ export default function SidebarNav() {
       <div className="flex-1 overflow-auto py-4">
         <div className="flex-1">
           <ul className="grid items-start px-4 text-sm font-medium">
-            {navItems.map(({ href, icon: Icon, label }) => (
+            {navItems.map(({ href, icon: Icon, label, exact }) => {
+              const isActive = exact ? pathname === href : pathname.startsWith(href);
+              return (
               <li key={label}>
                 <Link href={href}>
                   <Button
-                    variant={pathname.startsWith(href) ? 'default' : 'ghost'}
+                    variant={isActive ? 'default' : 'ghost'}
                     className="w-full justify-start"
                   >
                     <Icon className="mr-2 h-4 w-4" />
@@ -79,7 +88,7 @@ export default function SidebarNav() {
                   </Button>
                 </Link>
               </li>
-            ))}
+            )})}
           </ul>
         </div>
       </div>

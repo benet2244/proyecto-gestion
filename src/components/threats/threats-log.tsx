@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -20,14 +19,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MonthlyThreatLog, ThreatLogEntry, ThreatCategory } from '@/lib/definitions';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { MonthlyThreatLog, ThreatLogEntry, ThreatCategory, ThreatCategories } from '@/lib/definitions';
 import { ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -41,16 +33,6 @@ const months = [
 ];
 
 const getDaysInMonth = (year: number, month: number) => new Date(year, month, 0).getDate();
-
-const threatCategories: { key: ThreatCategory; label: string }[] = [
-    { key: 'malware', label: 'Malware' },
-    { key: 'phishing', label: 'Phishing' },
-    { key: 'comando_control', label: 'Comando y Control' },
-    { key: 'criptomineria', label: 'Criptomineria' },
-    { key: 'denegacion_servicios', label: 'Denegación de Servicios' },
-    { key: 'intentos_conexion_bloqueados', label: 'Intentos de Conexión Bloqueados' },
-];
-
 
 export default function ThreatsLog({ initialLogData }: ThreatsLogProps) {
   const [currentDate, setCurrentDate] = useState(new Date(initialLogData?.year || new Date().getFullYear(), initialLogData?.month -1 || new Date().getMonth()));
@@ -98,13 +80,18 @@ export default function ThreatsLog({ initialLogData }: ThreatsLogProps) {
   };
 
   const totals = useMemo(() => {
+    const initialTotals = ThreatCategories.reduce((acc, cat) => {
+        acc[cat.key] = 0;
+        return acc;
+    }, {} as Record<ThreatCategory, number>);
+
     return logEntries.reduce((acc, entry) => {
-        threatCategories.forEach(cat => {
+        ThreatCategories.forEach(cat => {
             acc[cat.key] += entry[cat.key];
         });
         acc.total += entry.total;
         return acc;
-    }, { malware: 0, phishing: 0, comando_control: 0, criptomineria: 0, denegacion_servicios: 0, intentos_conexion_bloqueados: 0, total: 0 });
+    }, { ...initialTotals, total: 0 });
   }, [logEntries]);
 
   const handleSave = () => {
@@ -170,7 +157,7 @@ export default function ThreatsLog({ initialLogData }: ThreatsLogProps) {
             <TableHeader>
                 <TableRow>
                 <TableHead className="w-[100px]">Date</TableHead>
-                {threatCategories.map(cat => (
+                {ThreatCategories.map(cat => (
                     <TableHead key={cat.key} className="min-w-[180px]">{cat.label}</TableHead>
                 ))}
                 <TableHead className="min-w-[120px]">Total</TableHead>
@@ -180,7 +167,7 @@ export default function ThreatsLog({ initialLogData }: ThreatsLogProps) {
                 {logEntries.map((entry) => (
                 <TableRow key={entry.day}>
                     <TableCell className="font-medium">{`${entry.day}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`}</TableCell>
-                    {threatCategories.map(cat => (
+                    {ThreatCategories.map(cat => (
                         <TableCell key={cat.key}>
                             <Input
                                 type="number"
@@ -197,7 +184,7 @@ export default function ThreatsLog({ initialLogData }: ThreatsLogProps) {
             <TableFooter>
                 <TableRow>
                     <TableCell className="font-bold">TOTAL</TableCell>
-                    {threatCategories.map(cat => (
+                    {ThreatCategories.map(cat => (
                          <TableCell key={cat.key} className="font-bold">{totals[cat.key]}</TableCell>
                     ))}
                     <TableCell className="font-bold">{totals.total}</TableCell>

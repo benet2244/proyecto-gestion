@@ -52,7 +52,16 @@ export type Detection = {
   estado: 'Abierto' | 'Pendiente' | 'Cerrado';
 };
 
-export type ThreatCategory = 'malware' | 'phishing' | 'comando_control' | 'criptomineria' | 'denegacion_servicios' | 'intentos_conexion_bloqueados';
+export const ThreatCategories = [
+    { key: 'malware', label: 'Malware' },
+    { key: 'phishing', label: 'Phishing' },
+    { key: 'comando_control', label: 'Comando y Control' },
+    { key: 'criptomineria', label: 'Criptomineria' },
+    { key: 'denegacion_servicios', label: 'Denegación de Servicios' },
+    { key: 'intentos_conexion_bloqueados', label: 'Intentos de Conexión Bloqueados' },
+] as const;
+
+export type ThreatCategory = typeof ThreatCategories[number]['key'];
 
 export type ThreatLogEntry = {
     day: number;
