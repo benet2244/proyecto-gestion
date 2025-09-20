@@ -1,3 +1,4 @@
+
 export type Incident = {
   id: string;
   title: string;
@@ -45,7 +46,7 @@ export type Detection = {
   estado_equipo: string;
   acciones_tomadas: string;
   hash: string;
-  nivel_amenaza: 'No Detectado' | 'Bajo' | 'Medio' | 'Alto' | 'Crítico';
+  nivel_amenaza: 'No Detectado' | 'Bajo' | 'Medio' | 'Alto' | 'Crítico' | 'Desconocido';
   detalles: string;
   estado: 'Abierto' | 'Pendiente' | 'Cerrado';
 };

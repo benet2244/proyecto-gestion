@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -31,6 +32,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar } from "../ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
+import { analyzeHash } from "@/ai/flows/analyze-hash-flow"
 
 
 const FormSchema = z.object({
@@ -48,6 +50,7 @@ const FormSchema = z.object({
   hash: z.string().optional(),
   detalles: z.string().min(1, "Detalles son requeridos."),
   estado: z.enum(["Abierto", "Pendiente", "Cerrado"]),
+  nivel_amenaza: z.enum(["No Detectado", "Bajo", "Medio", "Alto", "Crítico", "Desconocido"]).optional(),
 })
 
 interface DetectionFormProps {
@@ -72,48 +75,54 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
         hash: detection?.hash || "",
         detalles: detection?.detalles || "",
         estado: detection?.estado || "Abierto",
+        nivel_amenaza: detection?.nivel_amenaza || undefined,
     }
   })
 
   const handleAnalyzeHash = async () => {
     const hash = form.getValues("hash");
-    if (!hash || !/^[a-fA-F0-9]{32}$/.test(hash)) {
+    if (!hash || !/^[a-fA-F0-9]{32,128}$/.test(hash)) {
         toast({
             title: "Hash Inválido",
-            description: "Por favor ingrese un hash MD5 válido.",
+            description: "Por favor ingrese un hash MD5, SHA1 o SHA256 válido.",
             variant: "destructive",
         })
         return;
     }
     
     setIsAnalyzing(true);
-    // Simulate VirusTotal API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // This is where you would call your Genkit flow for VirusTotal
-    // For now, we'll simulate a response.
-    const simulatedThreatLevel = ['No Detectado', 'Bajo', 'Medio', 'Alto', 'Crítico'][Math.floor(Math.random() * 5)];
+    try {
+        const result = await analyzeHash({ hash });
+        form.setValue('nivel_amenaza', result.threatLevel, { shouldValidate: true });
+        
+        if(result.virusName) {
+            const currentDetails = form.getValues('detalles');
+            form.setValue('detalles', `${currentDetails}\n\nAnálisis VirusTotal: ${result.virusName}`);
+        }
 
-    form.setValue('nivel_amenaza', simulatedThreatLevel as any, { shouldValidate: true });
+        toast({
+            title: "Análisis Completado",
+            description: `Nivel de Amenaza: ${result.threatLevel} (${result.maliciousCount}/${result.totalScans} motores)`
+        });
 
-    toast({
-        title: "Análisis Completado",
-        description: `Hash: ${hash}\nNivel de Amenaza: ${simulatedThreatLevel}`
-    })
-    setIsAnalyzing(false);
+    } catch(error) {
+        console.error(error);
+        toast({
+            title: "Error de Análisis",
+            description: "No se pudo conectar con el servicio de análisis. Intente de nuevo.",
+            variant: "destructive",
+        })
+    } finally {
+        setIsAnalyzing(false);
+    }
   }
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
-    const fullData = {
-        ...data,
-        nivel_amenaza: form.getValues('nivel_amenaza')
-    }
-
     toast({
       title: detection ? "Detección Actualizada" : "Detección Creada",
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(fullData, null, 2)}</code>
+          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
         </pre>
       ),
     })
@@ -298,10 +307,10 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
                 name="hash"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Hash MD5</FormLabel>
+                    <FormLabel>Hash (MD5, SHA1, SHA256)</FormLabel>
                     <div className="flex gap-2">
                         <FormControl>
-                            <Input placeholder="MD5 hash del archivo sospechoso..." {...field} />
+                            <Input placeholder="Hash del archivo sospechoso..." {...field} />
                         </FormControl>
                         <Button type="button" onClick={handleAnalyzeHash} disabled={isAnalyzing}>
                             {isAnalyzing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -309,7 +318,7 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
                         </Button>
                     </div>
                      <FormDescription>
-                        Ingrese el hash MD5 para analizarlo con VirusTotal y determinar el nivel de amenaza.
+                        Ingrese el hash para analizarlo con VirusTotal y determinar el nivel de amenaza.
                     </FormDescription>
                     <FormMessage />
                     </FormItem>
