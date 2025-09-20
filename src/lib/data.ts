@@ -107,8 +107,13 @@ const parser = new Parser();
 const RSS_URL = 'https://thehackernews.com/feeds/posts/default';
 
 const extractImageUrl = (content: string) => {
-    const imgMatch = content.match(/<img src="([^"]+)"/);
-    return imgMatch ? imgMatch[1] : 'https://picsum.photos/seed/1/600/400';
+    // Regex to find the src attribute of the first img tag. It handles both single and double quotes.
+    const imgMatch = content.match(/<img[^>]+src="([^"]+)"/);
+    if (imgMatch && imgMatch[1]) {
+        return imgMatch[1];
+    }
+    // Fallback if no image is found
+    return `https://picsum.photos/seed/${Math.random()}/600/400`;
 };
 
 const assignCategory = (title: string): NewsArticle['category'] => {
@@ -136,6 +141,7 @@ export const getNewsArticles = async (): Promise<NewsArticle[]> => {
         }));
     } catch (error) {
         console.error("Failed to fetch news articles:", error);
+        // Return an empty array in case of an error to prevent the app from crashing.
         return [];
     }
 };
