@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -28,6 +28,11 @@ interface ThreatDetailsTableProps {
 
 
 export default function ThreatDetailsTable({ logData, fullMonthLogData }: ThreatDetailsTableProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   const periodTotals = useMemo(() => {
     const totals = ThreatCategories.reduce((acc, cat) => {
@@ -60,6 +65,10 @@ export default function ThreatDetailsTable({ logData, fullMonthLogData }: Threat
   const periodGrandTotal = Object.values(periodTotals).reduce((a, b) => a + b, 0);
   const monthlyGrandTotal = Object.values(monthlyTotals).reduce((a, b) => a + b, 0);
 
+  const getFormattedNumber = (num: number) => {
+    return isClient ? formatNumber(num) : num.toString();
+  }
+
 
   return (
     <Card>
@@ -83,8 +92,8 @@ export default function ThreatDetailsTable({ logData, fullMonthLogData }: Threat
                     {ThreatCategories.map(cat => (
                         <TableRow key={cat.key}>
                             <TableCell className="font-medium">{cat.label}</TableCell>
-                            <TableCell className="text-right">{formatNumber(periodTotals[cat.key])}</TableCell>
-                            <TableCell className="text-right">{formatNumber(monthlyTotals[cat.key])}</TableCell>
+                            <TableCell className="text-right">{getFormattedNumber(periodTotals[cat.key])}</TableCell>
+                            <TableCell className="text-right">{getFormattedNumber(monthlyTotals[cat.key])}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -92,10 +101,10 @@ export default function ThreatDetailsTable({ logData, fullMonthLogData }: Threat
                     <TableRow>
                         <TableCell className="font-bold">TOTAL</TableCell>
                          <TableCell className="text-right font-bold">
-                            {formatNumber(periodGrandTotal)}
+                            {getFormattedNumber(periodGrandTotal)}
                         </TableCell>
                         <TableCell className="text-right font-bold">
-                            {formatNumber(monthlyGrandTotal)}
+                            {getFormatteddNumber(monthlyGrandTotal)}
                         </TableCell>
                     </TableRow>
                 </TableFooter>

@@ -1,16 +1,24 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MonthlyThreatLog } from '@/lib/definitions';
 import { ShieldAlert, TrendingUp, Zap } from 'lucide-react';
+import { formatNumber } from '@/lib/utils';
+
 
 interface ThreatSummaryCardProps {
   logData: MonthlyThreatLog;
 }
 
 export default function ThreatSummaryCard({ logData }: ThreatSummaryCardProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const summaryStats = useMemo(() => {
     const totalThreats = logData.entries.reduce((sum, entry) => sum + entry.total, 0);
     const totalDays = logData.entries.length;
@@ -29,6 +37,10 @@ export default function ThreatSummaryCard({ logData }: ThreatSummaryCardProps) {
     };
   }, [logData]);
 
+  const getFormattedNumber = (num: number) => {
+    return isClient ? formatNumber(num) : num.toString();
+  }
+
   return (
     <Card className="h-full">
       <CardHeader>
@@ -38,21 +50,21 @@ export default function ThreatSummaryCard({ logData }: ThreatSummaryCardProps) {
         <div className="flex flex-col items-center gap-2">
             <ShieldAlert className="h-10 w-10 text-destructive" />
             <p className="text-3xl font-bold">
-                {summaryStats.totalThreats}
+                {getFormattedNumber(summaryStats.totalThreats)}
             </p>
             <p className="text-sm text-muted-foreground">Total Threats</p>
         </div>
         <div className="flex flex-col items-center gap-2">
             <TrendingUp className="h-10 w-10 text-primary" />
             <p className="text-3xl font-bold">
-                {summaryStats.averageDailyThreats}
+                {getFormattedNumber(summaryStats.averageDailyThreats)}
             </p>
             <p className="text-sm text-muted-foreground">Avg. Daily Threats</p>
         </div>
          <div className="flex flex-col items-center gap-2">
             <Zap className="h-10 w-10 text-yellow-500" />
             <p className="text-3xl font-bold">
-                {summaryStats.peakDayTotal}
+                {getFormattedNumber(summaryStats.peakDayTotal)}
             </p>
             <p className="text-sm text-muted-foreground">Peak on {summaryStats.peakDayDate}</p>
         </div>
