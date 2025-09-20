@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, useFieldArray, Control } from "react-hook-form"
 import { z } from "zod"
 import { PlusCircle, Trash2 } from "lucide-react";
 
@@ -32,6 +32,65 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 
+// Schemas for sub-sections
+const WorkstreamAssignmentSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
+  role: z.enum(["Scoping", "Triage", "Intelligence", "Impact"]),
+});
+
+const WorkstreamTrackerSchema = z.object({
+  id: z.string().optional(),
+  task: z.string().min(1, "Task is required"),
+  assignedTo: z.string().min(1, "Assignee is required"),
+  priority: z.enum(["Alta", "Media", "Baja"]),
+  status: z.enum(["New", "In Progress", "Complete"]),
+});
+
+const SystemSchema = z.object({
+  id: z.string().optional(),
+  hostname: z.string().min(1, "Hostname is required"),
+  ipAddress: z.string().optional(),
+  systemOperating: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const HostIndicatorSchema = z.object({
+  id: z.string().optional(),
+  fullPath: z.string().min(1, "Path is required"),
+  md5: z.string().optional(),
+  sha1: z.string().optional(),
+  sha256: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const NetworkIndicatorSchema = z.object({
+    id: z.string().optional(),
+    indicator: z.string().min(1, "Indicator is required"),
+    status: z.enum(["Sospechoso", "Confirmado"]),
+    source: z.string().optional(),
+});
+
+const EvidenceTrackerSchema = z.object({
+    id: z.string().optional(),
+    evidenceType: z.string().min(1, "Type is required"),
+    evidenceSource: z.string().optional(),
+    dateReceived: z.string().optional(),
+    evidenceLocation: z.string().optional(),
+});
+
+const ApplicationSchema = z.object({
+    id: z.string().optional(),
+    submittedBy: z.string().min(1, "Submitter is required"),
+    status: ApplicationStatusSchema,
+});
+
+const ForensicSchema = z.object({
+    id: z.string().optional(),
+    highFidelityForensicKeywords: z.string().optional(),
+    note: z.string().min(1, "Note is required"),
+});
+
 
 // Main Form Schema
 const FormSchema = z.object({
@@ -43,283 +102,411 @@ const FormSchema = z.object({
   }),
   severity: z.enum(["Low", "Medium", "High", "Critical"]),
   status: IncidentStatusSchema,
+  workstreamAssignment: z.array(WorkstreamAssignmentSchema).optional(),
+  workstreamTracker: z.array(WorkstreamTrackerSchema).optional(),
+  systems: z.array(SystemSchema).optional(),
+  hostIndicators: z.array(HostIndicatorSchema).optional(),
+  networkIndicators: z.array(NetworkIndicatorSchema).optional(),
+  intelligence: z.object({
+    status: z.enum(["Green", "Yellow", "Red"]),
+    rfi: z.enum(["Unanswered", "Awaiting Response", "Answered"]),
+    sourceFile: z.any().optional(),
+    response: z.string().optional(),
+  }).optional(),
+  evidenceTracker: z.array(EvidenceTrackerSchema).optional(),
+  applications: z.array(ApplicationSchema).optional(),
+  forensics: z.array(ForensicSchema).optional(),
+  authorization: z.object({
+    authorizerName: z.string().optional(),
+    authorizerRank: z.string().optional(),
+    catalog: z.string().optional(),
+  }).optional(),
 })
 
+type FormValues = z.infer<typeof FormSchema>;
+
+interface SectionProps<T> {
+  control: Control<FormValues>;
+  incident?: Incident;
+}
+
 // Section Components
-function WorkstreamAssignmentForm() {
-    // In a real app, this would use useFieldArray from react-hook-form
+function WorkstreamAssignmentForm({ control, incident }: SectionProps<any>) {
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "workstreamAssignment",
+    });
+
     return (
          <div>
             <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Responder</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ name: "", role: "Scoping" })}><PlusCircle className="mr-2"/>Add Responder</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-end gap-2">
-                    <FormItem className="flex-1">
-                        <FormLabel>Responder #1</FormLabel>
-                        <FormControl><Input placeholder="Assignee Name..."/></FormControl>
-                    </FormItem>
-                    <FormItem className="w-1/3">
-                        <FormLabel>Role</FormLabel>
-                         <Select><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent>
-                            <SelectItem value="Scoping">Scoping</SelectItem>
-                            <SelectItem value="Triage">Triage</SelectItem>
-                            <SelectItem value="Intelligence">Intelligence</SelectItem>
-                            <SelectItem value="Impact">Impact</SelectItem>
-                         </SelectContent></Select>
-                    </FormItem>
-                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
-                </div>
+                {fields.map((field, index) => (
+                    <div key={field.id} className="flex items-end gap-2 border-b pb-4 last:border-b-0 last:pb-0">
+                         <FormField
+                            control={control}
+                            name={`workstreamAssignment.${index}.name`}
+                            render={({ field }) => (
+                                <FormItem className="flex-1">
+                                    <FormLabel>Responder #{index + 1}</FormLabel>
+                                    <FormControl><Input placeholder="Assignee Name..." {...field} /></FormControl>
+                                     <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={control}
+                            name={`workstreamAssignment.${index}.role`}
+                            render={({ field }) => (
+                                <FormItem className="w-1/3">
+                                    <FormLabel>Role</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="Scoping">Scoping</SelectItem>
+                                            <SelectItem value="Triage">Triage</SelectItem>
+                                            <SelectItem value="Intelligence">Intelligence</SelectItem>
+                                            <SelectItem value="Impact">Impact</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                    </div>
+                ))}
+                {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No responders added yet.</p>}
             </div>
         </div>
     )
 }
 
-function WorkstreamTrackerForm() {
-    // In a real app, this would use useFieldArray from react-hook-form
+function WorkstreamTrackerForm({ control }: SectionProps<any>) {
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "workstreamTracker",
+    });
     return (
         <div>
             <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Task</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ task: "", assignedTo: "", priority: "Media", status: "New" })}><PlusCircle className="mr-2"/>Add Task</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-end gap-2">
-                    <FormItem className="flex-1">
-                        <FormLabel>Task</FormLabel>
-                        <FormControl><Input placeholder="Describe the task..."/></FormControl>
-                    </FormItem>
-                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
-                </div>
-                 <div className="grid grid-cols-3 gap-4">
-                    <FormItem>
-                        <FormLabel>Assigned To</FormLabel>
-                        <FormControl><Input placeholder="Assignee..."/></FormControl>
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Priority</FormLabel>
-                         <Select><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Baja">Baja</SelectItem><SelectItem value="Media">Media</SelectItem><SelectItem value="Alta">Alta</SelectItem></SelectContent></Select>
-                    </FormItem>
-                     <FormItem>
-                        <FormLabel>Status</FormLabel>
-                         <Select><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="New">New</SelectItem><SelectItem value="In Progress">In Progress</SelectItem><SelectItem value="Complete">Complete</SelectItem></SelectContent></Select>
-                    </FormItem>
-                </div>
+                 {fields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <FormField
+                            control={control}
+                            name={`workstreamTracker.${index}.task`}
+                            render={({ field }) => (
+                                <FormItem className="flex-1">
+                                    <FormLabel>Task</FormLabel>
+                                    <FormControl><Input placeholder="Describe the task..." {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-3 gap-4">
+                            <FormField
+                                control={control}
+                                name={`workstreamTracker.${index}.assignedTo`}
+                                render={({ field }) => (
+                                    <FormItem><FormLabel>Assigned To</FormLabel><FormControl><Input placeholder="Assignee..." {...field}/></FormControl><FormMessage /></FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={control}
+                                name={`workstreamTracker.${index}.priority`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Priority</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Baja">Baja</SelectItem><SelectItem value="Media">Media</SelectItem><SelectItem value="Alta">Alta</SelectItem></SelectContent></Select>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={control}
+                                name={`workstreamTracker.${index}.status`}
+                                render={({ field }) => (
+                                     <FormItem>
+                                        <FormLabel>Status</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="New">New</SelectItem><SelectItem value="In Progress">In Progress</SelectItem><SelectItem value="Complete">Complete</SelectItem></SelectContent></Select>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </div>
+                ))}
+                 {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No tasks added yet.</p>}
             </div>
         </div>
     )
 }
 
-function SystemForm() {
+function SystemForm({ control }: SectionProps<any>) {
+    const { fields, append, remove } = useFieldArray({ control, name: "systems" });
      return (
         <div>
             <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add System</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ hostname: "", ipAddress: "", systemOperating: "", notes: "" })}><PlusCircle className="mr-2"/>Add System</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
-                 <div className="flex items-end gap-2">
-                    <FormItem className="flex-1">
-                        <FormLabel>Hostname</FormLabel>
-                        <FormControl><Input placeholder="e.g., WEB-SRV-01"/></FormControl>
-                    </FormItem>
-                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <FormItem>
-                        <FormLabel>IP Address</FormLabel>
-                        <FormControl><Input placeholder="e.g., 192.168.1.10"/></FormControl>
-                    </FormItem>
-                    <FormItem>
-                        <FormLabel>Operating System</FormLabel>
-                        <FormControl><Input placeholder="e.g., Windows Server 2022"/></FormControl>
-                    </FormItem>
-                </div>
-                <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl><Textarea placeholder="System notes..."/></FormControl>
-                </FormItem>
+                 {fields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <FormField
+                            control={control}
+                            name={`systems.${index}.hostname`}
+                            render={({ field }) => (
+                                <FormItem className="flex-1">
+                                    <FormLabel>Hostname</FormLabel>
+                                    <FormControl><Input placeholder="e.g., WEB-SRV-01" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                             <FormField control={control} name={`systems.${index}.ipAddress`} render={({ field }) => (<FormItem><FormLabel>IP Address</FormLabel><FormControl><Input placeholder="e.g., 192.168.1.10" {...field} /></FormControl></FormItem>)} />
+                             <FormField control={control} name={`systems.${index}.systemOperating`} render={({ field }) => (<FormItem><FormLabel>Operating System</FormLabel><FormControl><Input placeholder="e.g., Windows Server 2022" {...field} /></FormControl></FormItem>)} />
+                        </div>
+                         <FormField control={control} name={`systems.${index}.notes`} render={({ field }) => (<FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea placeholder="System notes..." {...field}/></FormControl></FormItem>)} />
+                    </div>
+                ))}
+                 {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No systems added yet.</p>}
             </div>
         </div>
     )
 }
 
-function HostIndicatorsForm() {
+function HostIndicatorsForm({ control }: SectionProps<any>) {
+     const { fields, append, remove } = useFieldArray({ control, name: "hostIndicators" });
     return (
         <div>
              <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Indicator</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ fullPath: "", md5: "", sha1: "", sha256: "", notes: ""})}><PlusCircle className="mr-2"/>Add Indicator</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-end gap-2">
-                    <FormItem className="flex-1">
-                        <FormLabel>Full Path & Name</FormLabel>
-                        <FormControl><Input placeholder="e.g., C:\temp\malicious.exe"/></FormControl>
-                    </FormItem>
-                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                    <FormItem><FormLabel>MD5</FormLabel><FormControl><Input /></FormControl></FormItem>
-                    <FormItem><FormLabel>SHA1</FormLabel><FormControl><Input /></FormControl></FormItem>
-                    <FormItem><FormLabel>SHA256</FormLabel><FormControl><Input /></FormControl></FormItem>
-                </div>
-                 <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl><Textarea placeholder="Indicator notes..."/></FormControl>
-                </FormItem>
+                {fields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <FormField control={control} name={`hostIndicators.${index}.fullPath`} render={({ field }) => (
+                            <FormItem className="flex-1">
+                                <FormLabel>Full Path & Name</FormLabel>
+                                <FormControl><Input placeholder="e.g., C:\temp\malicious.exe" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}/>
+                        <div className="grid grid-cols-3 gap-4">
+                             <FormField control={control} name={`hostIndicators.${index}.md5`} render={({ field }) => (<FormItem><FormLabel>MD5</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                             <FormField control={control} name={`hostIndicators.${index}.sha1`} render={({ field }) => (<FormItem><FormLabel>SHA1</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                             <FormField control={control} name={`hostIndicators.${index}.sha256`} render={({ field }) => (<FormItem><FormLabel>SHA256</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                        </div>
+                        <FormField control={control} name={`hostIndicators.${index}.notes`} render={({ field }) => (<FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea placeholder="Indicator notes..." {...field} /></FormControl></FormItem>)} />
+                    </div>
+                ))}
+                 {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No host indicators added yet.</p>}
             </div>
         </div>
     )
 }
 
-function NetworkIndicatorsForm() {
+function NetworkIndicatorsForm({ control }: SectionProps<any>) {
+    const { fields, append, remove } = useFieldArray({ control, name: "networkIndicators" });
     return (
         <div>
              <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Indicator</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ indicator: "", status: "Sospechoso", source: ""})}><PlusCircle className="mr-2"/>Add Indicator</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-end gap-2">
-                    <FormItem className="flex-1">
-                        <FormLabel>Indicator (URL, IP, Domain)</FormLabel>
-                        <FormControl><Input placeholder="e.g., http://malicious.com/payload.zip"/></FormControl>
-                    </FormItem>
-                     <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
-                </div>
-                 <div className="grid grid-cols-2 gap-4">
-                     <FormItem>
-                        <FormLabel>Status</FormLabel>
-                         <Select><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Sospechoso">Sospechoso</SelectItem><SelectItem value="Confirmado">Confirmado</SelectItem></SelectContent></Select>
-                    </FormItem>
-                     <FormItem>
-                        <FormLabel>Source</FormLabel>
-                        <FormControl><Input placeholder="e.g., Firewall Logs"/></FormControl>
-                    </FormItem>
-                </div>
+                 {fields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <FormField control={control} name={`networkIndicators.${index}.indicator`} render={({ field }) => (
+                            <FormItem className="flex-1">
+                                <FormLabel>Indicator (URL, IP, Domain)</FormLabel>
+                                <FormControl><Input placeholder="e.g., http://malicious.com/payload.zip" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}/>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={control} name={`networkIndicators.${index}.status`} render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Status</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Sospechoso">Sospechoso</SelectItem><SelectItem value="Confirmado">Confirmado</SelectItem></SelectContent></Select>
+                                </FormItem>
+                            )}/>
+                            <FormField control={control} name={`networkIndicators.${index}.source`} render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Source</FormLabel>
+                                    <FormControl><Input placeholder="e.g., Firewall Logs" {...field} /></FormControl>
+                                </FormItem>
+                            )}/>
+                        </div>
+                    </div>
+                ))}
+                 {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No network indicators added yet.</p>}
             </div>
         </div>
     )
 }
 
-function IntelligenceForm() {
+function IntelligenceForm({ control }: SectionProps<any>) {
     return (
         <div className="grid grid-cols-2 gap-6">
             <div className="space-y-4">
-                <FormItem>
-                    <FormLabel>Intel Status</FormLabel>
-                    <Select><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Green">Green</SelectItem><SelectItem value="Yellow">Yellow</SelectItem><SelectItem value="Red">Red</SelectItem></SelectContent></Select>
-                </FormItem>
-                <FormItem>
-                    <FormLabel>RFI Status</FormLabel>
-                    <Select><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Unanswered">Unanswered</SelectItem><SelectItem value="Awaiting Response">Awaiting Response</SelectItem><SelectItem value="Answered">Answered</SelectItem></SelectContent></Select>
-                </FormItem>
+                 <FormField control={control} name="intelligence.status" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Intel Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Green">Green</SelectItem><SelectItem value="Yellow">Yellow</SelectItem><SelectItem value="Red">Red</SelectItem></SelectContent></Select>
+                    </FormItem>
+                 )}/>
+                 <FormField control={control} name="intelligence.rfi" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>RFI Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Unanswered">Unanswered</SelectItem><SelectItem value="Awaiting Response">Awaiting Response</SelectItem><SelectItem value="Answered">Answered</SelectItem></SelectContent></Select>
+                    </FormItem>
+                )}/>
+                 <FormField control={control} name="intelligence.sourceFile" render={({ field }) => (
+                     <FormItem>
+                        <FormLabel>Source File</FormLabel>
+                        <FormControl><Input type="file" onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)} /></FormControl>
+                    </FormItem>
+                 )} />
+            </div>
+             <FormField control={control} name="intelligence.response" render={({ field }) => (
                  <FormItem>
-                    <FormLabel>Source File</FormLabel>
-                    <FormControl><Input type="file" /></FormControl>
+                    <FormLabel>Response</FormLabel>
+                    <FormControl><Textarea placeholder="Provide intelligence response..." className="h-full resize-none" {...field}/></FormControl>
                 </FormItem>
-            </div>
-             <FormItem>
-                <FormLabel>Response</FormLabel>
-                <FormControl><Textarea placeholder="Provide intelligence response..." className="h-full resize-none"/></FormControl>
-            </FormItem>
+             )}/>
         </div>
     )
 }
 
-function EvidenceTrackerForm() {
+function EvidenceTrackerForm({ control }: SectionProps<any>) {
+    const { fields, append, remove } = useFieldArray({ control, name: "evidenceTracker" });
     return (
         <div>
             <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Evidence</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ evidenceType: "", evidenceSource: "", dateReceived: new Date().toISOString().split('T')[0], evidenceLocation: ""})}><PlusCircle className="mr-2"/>Add Evidence</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-end gap-2">
-                    <FormItem className="flex-1">
-                        <FormLabel>Evidence Type</FormLabel>
-                        <FormControl><Input placeholder="e.g., Log File, Screenshot"/></FormControl>
-                    </FormItem>
-                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <FormItem><FormLabel>Source</FormLabel><FormControl><Input placeholder="e.g., SIEM"/></FormControl></FormItem>
-                    <FormItem><FormLabel>Date</FormLabel><FormControl><Input type="date"/></FormControl></FormItem>
-                    <FormItem><FormLabel>Date Received</FormLabel><FormControl><Input type="date"/></FormControl></FormItem>
-                    <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., Case Folder"/></FormControl></FormItem>
-                </div>
-                <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl><Textarea placeholder="Evidence notes..."/></FormControl>
-                </FormItem>
+                {fields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <FormField control={control} name={`evidenceTracker.${index}.evidenceType`} render={({ field }) => (
+                            <FormItem className="flex-1">
+                                <FormLabel>Evidence Type</FormLabel>
+                                <FormControl><Input placeholder="e.g., Log File, Screenshot" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}/>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                             <FormField control={control} name={`evidenceTracker.${index}.evidenceSource`} render={({ field }) => (<FormItem><FormLabel>Source</FormLabel><FormControl><Input placeholder="e.g., SIEM" {...field}/></FormControl></FormItem>)} />
+                             <FormField control={control} name={`evidenceTracker.${index}.dateReceived`} render={({ field }) => (<FormItem><FormLabel>Date Received</FormLabel><FormControl><Input type="date" {...field}/></FormControl></FormItem>)} />
+                             <FormField control={control} name={`evidenceTracker.${index}.evidenceLocation`} render={({ field }) => (<FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., Case Folder" {...field}/></FormControl></FormItem>)} />
+                        </div>
+                    </div>
+                ))}
+                 {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No evidence added yet.</p>}
             </div>
         </div>
     )
 }
 
-function ApplicationForm() {
+function ApplicationForm({ control }: SectionProps<any>) {
+     const { fields, append, remove } = useFieldArray({ control, name: "applications" });
     return (
         <div>
             <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Application</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ submittedBy: "", status: "compromised-malware"})}><PlusCircle className="mr-2"/>Add Application</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-end gap-2">
-                     <FormItem className="flex-1">
-                        <FormLabel>Submitted By</FormLabel>
-                        <FormControl><Input placeholder="Analyst Name"/></FormControl>
-                    </FormItem>
-                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
-                </div>
-                <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
-                        <SelectContent>
-                            {ApplicationStatusSchema.options.map(status => (
-                                <SelectItem key={status} value={status}>{status.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </FormItem>
+                {fields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
+                         <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <FormField control={control} name={`applications.${index}.submittedBy`} render={({ field }) => (
+                             <FormItem className="flex-1">
+                                <FormLabel>Submitted By</FormLabel>
+                                <FormControl><Input placeholder="Analyst Name" {...field}/></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}/>
+                        <FormField control={control} name={`applications.${index}.status`} render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Status</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        {ApplicationStatusSchema.options.map(status => (
+                                            <SelectItem key={status} value={status}>{status.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </FormItem>
+                        )}/>
+                    </div>
+                ))}
+                 {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No applications added yet.</p>}
             </div>
         </div>
     )
 }
 
-function ForensicForm() {
+function ForensicForm({ control }: SectionProps<any>) {
+     const { fields, append, remove } = useFieldArray({ control, name: "forensics" });
     return (
         <div>
              <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Entry</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ highFidelityForensicKeywords: "", note: ""})}><PlusCircle className="mr-2"/>Add Entry</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
-                 <div className="flex items-end gap-2">
-                    <FormItem className="flex-1">
-                        <FormLabel>High Fidelity Forensic Keywords</FormLabel>
-                        <FormControl><Input placeholder="Keywords..."/></FormControl>
-                    </FormItem>
-                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
-                </div>
-                 <FormItem>
-                    <FormLabel>Note</FormLabel>
-                    <FormControl><Textarea placeholder="Forensic notes..."/></FormControl>
-                </FormItem>
+                {fields.map((field, index) => (
+                    <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <FormField control={control} name={`forensics.${index}.highFidelityForensicKeywords`} render={({ field }) => (
+                            <FormItem className="flex-1">
+                                <FormLabel>High Fidelity Forensic Keywords</FormLabel>
+                                <FormControl><Input placeholder="Keywords..." {...field}/></FormControl>
+                            </FormItem>
+                        )}/>
+                        <FormField control={control} name={`forensics.${index}.note`} render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Note</FormLabel>
+                                <FormControl><Textarea placeholder="Forensic notes..." {...field}/></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}/>
+                    </div>
+                ))}
+                 {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No forensic entries added yet.</p>}
             </div>
         </div>
     )
 }
 
-function AuthorizationForm() {
+function AuthorizationForm({ control }: SectionProps<any>) {
     return (
         <div className="grid grid-cols-3 gap-4">
-            <FormItem>
-                <FormLabel>Authorizer Name</FormLabel>
-                <FormControl><Input placeholder="e.g., John Doe"/></FormControl>
-            </FormItem>
-             <FormItem>
-                <FormLabel>Authorizer Rank/Title</FormLabel>
-                <FormControl><Input placeholder="e.g., CISO"/></FormControl>
-            </FormItem>
-             <FormItem>
-                <FormLabel>Catalog/Reference</FormLabel>
-                <FormControl><Input placeholder="e.g., Legal Hold #123"/></FormControl>
-            </FormItem>
+            <FormField control={control} name="authorization.authorizerName" render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Authorizer Name</FormLabel>
+                    <FormControl><Input placeholder="e.g., John Doe" {...field}/></FormControl>
+                </FormItem>
+            )}/>
+             <FormField control={control} name="authorization.authorizerRank" render={({ field }) => (
+                 <FormItem>
+                    <FormLabel>Authorizer Rank/Title</FormLabel>
+                    <FormControl><Input placeholder="e.g., CISO" {...field}/></FormControl>
+                </FormItem>
+             )}/>
+             <FormField control={control} name="authorization.catalog" render={({ field }) => (
+                 <FormItem>
+                    <FormLabel>Catalog/Reference</FormLabel>
+                    <FormControl><Input placeholder="e.g., Legal Hold #123" {...field}/></FormControl>
+                </FormItem>
+             )}/>
         </div>
     )
 }
@@ -333,20 +520,34 @@ interface IncidentFormProps {
 export default function IncidentForm({ incident }: IncidentFormProps) {
   const isEditMode = !!incident;
 
-  const form = useForm<z.infer<typeof FormSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
         title: incident?.title || "",
         description: incident?.description || "",
         severity: incident?.severity || "Medium",
         status: incident?.status || "Identificación",
+        workstreamAssignment: incident?.workstreamAssignment || [],
+        workstreamTracker: incident?.workstreamTracker.map(t => ({...t, priority: t.priority as "Alta" | "Media" | "Baja", status: t.status as "New" | "In Progress" | "Complete"})) || [],
+        systems: incident?.systems || [],
+        hostIndicators: incident?.hostIndicators.map(h => ({...h, notes: h.notes || ''})) || [],
+        networkIndicators: incident?.networkIndicators.map(n => ({...n, status: n.status as "Sospechoso" | "Confirmado"})) || [],
+        intelligence: incident?.intelligence ? { ...incident.intelligence, status: incident.intelligence.status as "Green" | "Yellow" | "Red", rfi: incident.intelligence.rfi as "Unanswered" | "Awaiting Response" | "Answered" } : { status: "Green", rfi: "Unanswered", response: "" },
+        evidenceTracker: incident?.evidenceTracker || [],
+        applications: incident?.applications || [],
+        forensics: incident?.forensics || [],
+        authorization: incident?.authorization || { authorizerName: "", authorizerRank: "", catalog: "" },
     }
   })
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
+  function onSubmit(data: FormValues) {
     toast({
       title: incident ? "Incident Updated" : "Incident Created",
-      description: "The incident details have been saved. (This is a mock action)",
+      description: (
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+        </pre>
+      ),
     })
   }
 
@@ -434,55 +635,55 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
         </div>
 
         {/* Accordion for other sections */}
-        <Accordion type="multiple" className="w-full space-y-4">
+        <Accordion type="multiple" className="w-full space-y-4" defaultValue={["workstream-assignment"]}>
             <AccordionItem value="workstream-assignment" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Workstream Assignment</AccordionTrigger>
-                <AccordionContent><WorkstreamAssignmentForm /></AccordionContent>
+                <AccordionContent><WorkstreamAssignmentForm control={form.control} incident={incident} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="workstream-tracker" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Workstream Tracker</AccordionTrigger>
-                <AccordionContent><WorkstreamTrackerForm /></AccordionContent>
+                <AccordionContent><WorkstreamTrackerForm control={form.control} incident={incident} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="systems" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Systems</AccordionTrigger>
-                <AccordionContent><SystemForm /></AccordionContent>
+                <AccordionContent><SystemForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="host-indicators" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Host Indicators</AccordionTrigger>
-                <AccordionContent><HostIndicatorsForm /></AccordionContent>
+                <AccordionContent><HostIndicatorsForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="network-indicators" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Network Indicators</AccordionTrigger>
-                <AccordionContent><NetworkIndicatorsForm /></AccordionContent>
+                <AccordionContent><NetworkIndicatorsForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="intelligence" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Intelligence</AccordionTrigger>
-                <AccordionContent><IntelligenceForm /></AccordionContent>
+                <AccordionContent><IntelligenceForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="evidence-tracker" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Evidence Tracker</AccordionTrigger>
-                <AccordionContent><EvidenceTrackerForm /></AccordionContent>
+                <AccordionContent><EvidenceTrackerForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="application" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Application</AccordionTrigger>
-                <AccordionContent><ApplicationForm /></AccordionContent>
+                <AccordionContent><ApplicationForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="forensic" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Forensic</AccordionTrigger>
-                <AccordionContent><ForensicForm /></AccordionContent>
+                <AccordionContent><ForensicForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="authorization" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Authorization</AccordionTrigger>
-                <AccordionContent><AuthorizationForm /></AccordionContent>
+                <AccordionContent><AuthorizationForm control={form.control} /></AccordionContent>
             </AccordionItem>
 
         </Accordion>
