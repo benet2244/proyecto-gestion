@@ -1,4 +1,5 @@
 import { Incident, NewsArticle, Detection } from '@/lib/definitions';
+import Parser from 'rss-parser';
 
 export const incidents: Incident[] = [
   {
@@ -102,60 +103,39 @@ export const detections: Detection[] = [
     }
 ];
 
-export const newsArticles: NewsArticle[] = [
-    {
-    id: 'NEWS-001',
-    title: 'Critical RCE Vulnerability Found in Popular Web Server',
-    source: 'CyberWire Daily',
-    url: '#',
-    publishedAt: '2024-07-22T08:00:00Z',
-    imageUrl: 'https://picsum.photos/seed/101/600/400',
-    imageHint: 'code server',
-    category: 'vulnerabilities',
-    content: 'A critical remote code execution (RCE) vulnerability, tracked as CVE-2024-12345, has been discovered in the widely used "Nexus" web server software. The flaw allows unauthenticated attackers to execute arbitrary code on the server, potentially leading to a full system compromise. Administrators are urged to apply the patch immediately. The vulnerability exists in the way the server processes file uploads, allowing a specially crafted file to bypass security checks. All versions prior to 3.5.2 are affected. Security researchers at SecureLayer demonstrated a proof-of-concept exploit that gains a reverse shell on a target system. The vendor has released a patch and a detailed advisory.'
-  },
-  {
-    id: 'NEWS-002',
-    title: 'New "Chrono-Ransom" Malware Encrypts Files Based on Timestamps',
-    source: 'ThreatPost',
-    url: '#',
-    publishedAt: '2024-07-21T12:30:00Z',
-    imageUrl: 'https://picsum.photos/seed/102/600/400',
-    imageHint: 'malware virus',
-    category: 'malware',
-    content: 'A new strain of ransomware dubbed "Chrono-Ransom" has been observed in the wild. Unlike traditional ransomware, Chrono-Ransom selectively encrypts files based on their creation and modification dates, targeting newer files first to maximize disruption. The malware is primarily distributed through phishing emails containing malicious Microsoft Office documents. Once executed, it establishes persistence and begins encrypting files in the background. The ransom note demands payment in cryptocurrency and threatens to leak data if the ransom is not paid within 72 hours. Experts recommend robust email filtering and regular offline backups to mitigate this threat.'
-  },
-  {
-    id: 'NEWS-003',
-    title: 'Microsoft Releases Emergency Out-of-Band Patch for Windows Kernel',
-    source: 'Bleeping Computer',
-    url: '#',
-    publishedAt: '2024-07-20T15:00:00Z',
-    imageUrl: 'https://picsum.photos/seed/103/600/400',
-    imageHint: 'update software',
-    category: 'patches',
-    content: 'Microsoft has issued an emergency out-of-band security update to address a privilege escalation vulnerability in the Windows Kernel. The flaw, CVE-2024-54321, could allow a local attacker to gain SYSTEM privileges on a compromised machine. The vulnerability was reportedly being actively exploited by a state-sponsored threat actor group known as "Shadow Weavers". The patch is available for all supported versions of Windows and Windows Server. System administrators are advised to deploy the update as soon as possible to prevent potential exploitation.'
-  },
-    {
-    id: 'NEWS-004',
-    title: 'State-Sponsored Hackers Target Aerospace and Defense Industries',
-    source: 'Krebs on Security',
-    url: '#',
-    publishedAt: '2024-07-22T11:00:00Z',
-    imageUrl: 'https://picsum.photos/seed/104/600/400',
-    imageHint: 'hacker network',
-    category: 'threats',
-    content: 'A sophisticated cyber-espionage campaign attributed to the APT42 group is actively targeting companies in the aerospace and defense sectors. The attackers use advanced social engineering techniques and custom-built malware to infiltrate networks and exfiltrate sensitive intellectual property, including blueprints and research data. The campaign has been active for at least six months and has shown a high degree of operational security, making detection difficult. The primary infection vector appears to be spear-phishing emails sent to high-profile employees.'
-  },
-  {
-    id: 'NEWS-005',
-    title: 'The Rise of AI in Phishing Attacks: What to Watch For',
-    source: 'Dark Reading',
-    url: '#',
-    publishedAt: '2024-07-19T09:00:00Z',
-    imageUrl: 'https://picsum.photos/seed/105/600/400',
-    imageHint: 'ai phishing',
-    category: 'general',
-    content: 'Cybercriminals are increasingly leveraging generative AI to create highly convincing and personalized phishing emails at scale. These AI-crafted emails often lack the typical grammatical errors and awkward phrasing of older phishing attempts, making them much harder to detect. Security experts are advising organizations to update their security awareness training to educate employees on these new, more sophisticated threats. Key indicators now include contextual inconsistencies and an unusual sense of urgency, rather than just spelling mistakes.'
-  }
-];
+const parser = new Parser();
+const RSS_URL = 'https://thehackernews.com/feeds/posts/default';
+
+const extractImageUrl = (content: string) => {
+    const imgMatch = content.match(/<img src="([^"]+)"/);
+    return imgMatch ? imgMatch[1] : 'https://picsum.photos/seed/1/600/400';
+};
+
+const assignCategory = (title: string): NewsArticle['category'] => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes('vulnerability') || lowerTitle.includes('cve-')) return 'vulnerabilities';
+    if (lowerTitle.includes('patch') || lowerTitle.includes('update')) return 'patches';
+    if (lowerTitle.includes('malware') || lowerTitle.includes('ransomware') || lowerTitle.includes('trojan')) return 'malware';
+    if (lowerTitle.includes('attack') || lowerTitle.includes('threat') || lowerTitle.includes('hacker')) return 'threats';
+    return 'general';
+};
+
+export const getNewsArticles = async (): Promise<NewsArticle[]> => {
+    try {
+        const feed = await parser.parseURL(RSS_URL);
+        return feed.items.map((item, index) => ({
+            id: item.guid || `NEWS-${index}`,
+            title: item.title || 'No Title',
+            source: 'The Hacker News',
+            url: item.link || '#',
+            publishedAt: item.pubDate || new Date().toISOString(),
+            imageUrl: extractImageUrl(item.content || ''),
+            imageHint: 'cyber security',
+            category: assignCategory(item.title || ''),
+            content: item.contentSnippet || item.content || 'No content available.',
+        }));
+    } catch (error) {
+        console.error("Failed to fetch news articles:", error);
+        return [];
+    }
+};
