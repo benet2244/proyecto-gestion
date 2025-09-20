@@ -104,7 +104,7 @@ export default function ThreatDetailsTable({ logData, fullMonthLogData }: Threat
                             {getFormattedNumber(periodGrandTotal)}
                         </TableCell>
                         <TableCell className="text-right font-bold">
-                            {getFormatteddNumber(monthlyGrandTotal)}
+                            {getFormattedNumber(monthlyGrandTotal)}
                         </TableCell>
                     </TableRow>
                 </TableFooter>
