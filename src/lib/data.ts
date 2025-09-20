@@ -15,6 +15,70 @@ export const incidents: Incident[] = [
       { timestamp: '2024-07-20T09:30:00Z', update: 'Incident confirmed. Affected accounts are being identified and reset.' },
       { timestamp: '2024-07-20T11:00:00Z', update: 'All affected accounts have had their passwords reset. Monitoring for suspicious activity.' },
     ],
+    workstreamAssignment: {
+      scoping: 'Charlie Brown',
+      triage: 'Alice Johnson',
+      intelligence: 'Frank Miller',
+      impact: 'Bob Williams',
+    },
+    workstreamTracker: [
+      {
+        id: 'WT-001',
+        date: '2024-07-20',
+        priority: 'Alta',
+        status: 'In Progress',
+        workstream: 'Triage',
+        task: 'Identify all affected user accounts',
+        assignedTo: 'Alice Johnson',
+        dateUpdate: '2024-07-20',
+        dateComplete: '',
+      },
+    ],
+    systems: [
+      {
+        id: 'SYS-001',
+        status: 'Affected',
+        earliestEvidence: '2024-07-20T09:00:00Z',
+        latestEvidence: '2024-07-20T09:15:00Z',
+        hostname: 'FINANCE-PC-01',
+        ipAddress: '192.168.1.100',
+        domain: 'corporate.example.com',
+        systemRole: 'Workstation',
+        systemOperating: 'Windows 11',
+        details: 'User clicked on a phishing link.',
+        notes: 'PC has been isolated from the network.',
+      },
+    ],
+    hostIndicators: [
+      {
+        id: 'HI-001',
+        fullPath: 'C:\\Users\\ajohnson\\Downloads\\invoice.exe',
+        sha256: 'a9b8c7d6e5f4g3h2i1j0k9l8m7n6o5p4q3r2s1t0u9v8w7x6y5z4a3b2c1d0e9f8',
+        sha1: 'f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6b7a8f9e0',
+        md5: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6',
+        earliestEvidence: '2024-07-20T09:14:00Z',
+        latestEvidence: '2024-07-20T09:14:00Z',
+        attackAlignment: 'T1204 - User Execution',
+        notes: 'Malicious executable downloaded by user.',
+      },
+    ],
+    networkIndicators: [
+      {
+        id: 'NI-001',
+        assignment: 'Malicious Domain',
+        status: 'Confirmado',
+        indicator: 'http://malicious-login-portal.com/auth',
+        detail: 'Phishing URL from email.',
+        latestEvidence: '2024-07-20T09:12:00Z',
+        source: 'Email header analysis',
+        notes: 'Domain blocked at firewall.',
+      },
+    ],
+    intelligence: {
+      status: 'Red',
+      rfi: 'Answered',
+      response: 'The phishing campaign is linked to the FIN8 threat actor group.',
+    },
   },
   {
     id: 'INC-002',
@@ -29,6 +93,12 @@ export const incidents: Incident[] = [
       { timestamp: '2024-07-19T22:50:00Z', update: 'IP address has been blocked at the firewall level.' },
       { timestamp: '2024-07-20T01:00:00Z', update: 'Investigation complete. No breach detected. Closing incident.' },
     ],
+    workstreamAssignment: { scoping: '', triage: '', intelligence: '', impact: '' },
+    workstreamTracker: [],
+    systems: [],
+    hostIndicators: [],
+    networkIndicators: [],
+    intelligence: { status: 'Green', rfi: 'Unanswered', response: '' },
   },
   {
     id: 'INC-003',
@@ -39,6 +109,12 @@ export const incidents: Incident[] = [
     reportedAt: '2024-07-21T14:00:00Z',
     reporter: { name: 'Diana Prince', email: 'diana.p@example.com' },
     updates: [],
+    workstreamAssignment: { scoping: '', triage: '', intelligence: '', impact: '' },
+    workstreamTracker: [],
+    systems: [],
+    hostIndicators: [],
+    networkIndicators: [],
+    intelligence: { status: 'Yellow', rfi: 'Unanswered', response: '' },
   },
     {
     id: 'INC-004',
@@ -52,6 +128,12 @@ export const incidents: Incident[] = [
     updates: [
       { timestamp: '2024-07-22T10:05:00Z', update: 'DDoS mitigation service has been activated.' },
     ],
+    workstreamAssignment: { scoping: '', triage: '', intelligence: '', impact: '' },
+    workstreamTracker: [],
+    systems: [],
+    hostIndicators: [],
+    networkIndicators: [],
+    intelligence: { status: 'Red', rfi: 'Awaiting Response', response: '' },
   },
   {
     id: 'INC-005',
@@ -64,7 +146,13 @@ export const incidents: Incident[] = [
     assignedTo: { name: 'Charlie Brown', email: 'charlie.b@ciberseg.com' },
     updates: [
        { timestamp: '2024-07-18T16:30:00Z', update: 'New SSL certificate has been installed and verified.' },
-    ]
+    ],
+    workstreamAssignment: { scoping: '', triage: '', intelligence: '', impact: '' },
+    workstreamTracker: [],
+    systems: [],
+    hostIndicators: [],
+    networkIndicators: [],
+    intelligence: { status: 'Green', rfi: 'Answered', response: 'N/A' },
   }
 ];
 
@@ -104,15 +192,16 @@ export const detections: Detection[] = [
 ];
 
 const parser = new Parser();
-const RSS_URL = 'https://thehackernews.com/feeds/posts/default';
+const RSS_URLS = [
+    'https://thehackernews.com/feeds/posts/default'
+];
 
-const extractImageUrl = (content: string) => {
-    // Regex to find the src attribute of the first img tag. It handles both single and double quotes.
-    const imgMatch = content.match(/<img[^>]+src="([^"]+)"/);
-    if (imgMatch && imgMatch[1]) {
-        return imgMatch[1];
+const extractImageUrl = (content: string): string => {
+    const imgTagRegex = /<img[^>]+src="([^">]+)"/;
+    const match = content.match(imgTagRegex);
+    if (match && match[1]) {
+        return match[1];
     }
-    // Fallback if no image is found
     return `https://picsum.photos/seed/${Math.random()}/600/400`;
 };
 
@@ -127,7 +216,7 @@ const assignCategory = (title: string): NewsArticle['category'] => {
 
 export const getNewsArticles = async (): Promise<NewsArticle[]> => {
     try {
-        const feed = await parser.parseURL(RSS_URL);
+        const feed = await parser.parseURL(RSS_URLS[0]);
         return feed.items.map((item, index) => ({
             id: item.guid || `NEWS-${index}`,
             title: item.title || 'No Title',

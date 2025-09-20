@@ -29,6 +29,63 @@ export type Incident = {
     timestamp: string;
     update: string;
   }[];
+  workstreamAssignment: {
+    scoping: string;
+    triage: string;
+    intelligence: string;
+    impact: string;
+  };
+  workstreamTracker: {
+    id: string;
+    date: string;
+    priority: 'Alta' | 'Media' | 'Baja';
+    status: 'New' | 'In Progress' | 'Complete' | 'In Review' | 'Backlog';
+    workstream: string;
+    task: string;
+    assignedTo: string;
+    dateUpdate: string;
+    dateComplete: string;
+  }[];
+  systems: {
+    id: string;
+    status: string;
+    earliestEvidence: string;
+    latestEvidence: string;
+    hostname: string;
+    ipAddress: string;
+    domain: string;
+    systemRole: string;
+    systemOperating: string;
+    details: string;
+    notes: string;
+  }[];
+  hostIndicators: {
+    id: string;
+    fullPath: string;
+    sha256: string;
+    sha1: string;
+    md5: string;
+    earliestEvidence: string;
+    latestEvidence: string;
+    attackAlignment: string;
+    notes: string;
+  }[];
+  networkIndicators: {
+    id: string;
+    assignment: string;
+    status: 'Sospechoso' | 'Confirmado' | 'Under Investigation' | 'Unrelated';
+    indicator: string;
+    detail: string;
+    latestEvidence: string;
+    source: string;
+    notes: string;
+  }[];
+  intelligence: {
+    status: 'Red' | 'Yellow' | 'Green';
+    rfi: 'Unanswered' | 'Awaiting Response' | 'Answered';
+    response: string;
+    sourceFile?: string; // Name of the uploaded file
+  };
 };
 
 export type NewsCategory = 'vulnerabilities' | 'patches' | 'malware' | 'threats' | 'general';
