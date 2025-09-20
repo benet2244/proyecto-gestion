@@ -19,6 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { ApplicationStatus, Incident } from '@/lib/definitions';
+
+function formatApplicationStatus(status: ApplicationStatus): string {
+    return status.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
 
 export default function IncidentDetailPage({
   params,
@@ -217,6 +223,73 @@ export default function IncidentDetailPage({
               </Table>
             </CardContent>
           </Card>
+           <Card>
+            <CardHeader>
+              <CardTitle className="font-headline">Evidence Tracker</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Source</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Date Received</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {incident.evidenceTracker.map(evidence => (
+                    <TableRow key={evidence.id}>
+                      <TableCell>{evidence.evidenceType}</TableCell>
+                       <TableCell>{evidence.evidenceSource}</TableCell>
+                       <TableCell>{evidence.evidenceLocation}</TableCell>
+                      <TableCell>{new Date(evidence.dateReceived).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                  {incident.evidenceTracker.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No evidence tracked.</TableCell></TableRow>}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+              <CardTitle className="font-headline">Application Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Submitted By</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {incident.applications.map(app => (
+                    <TableRow key={app.id}>
+                      <TableCell>{app.submittedBy}</TableCell>
+                      <TableCell><Badge variant="outline">{formatApplicationStatus(app.status)}</Badge></TableCell>
+                    </TableRow>
+                  ))}
+                  {incident.applications.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">No application status entries.</TableCell></TableRow>}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+              <CardTitle className="font-headline">Forensic Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+                 {incident.forensics.length > 0 ? incident.forensics.map((forensic, index) => (
+                    <div key={index} className="space-y-2">
+                        <h4 className="font-medium">Keywords</h4>
+                        <p className="text-sm text-muted-foreground font-mono">{forensic.highFidelityForensicKeywords}</p>
+                        <h4 className="font-medium">Note</h4>
+                        <p className="text-sm text-muted-foreground">{forensic.note}</p>
+                    </div>
+                 )) : <p className='text-sm text-muted-foreground'>No forensic details added.</p>}
+            </CardContent>
+          </Card>
         </div>
         <div className="md:col-span-1 space-y-6">
           <Card>
@@ -295,6 +368,16 @@ export default function IncidentDetailPage({
                  </div>
             </CardContent>
            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Authorization</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-3">
+                    <div className="flex justify-between text-sm"><span className="text-muted-foreground">Authorizer Name</span><span>{incident.authorization.authorizerName}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-muted-foreground">Rank/Title</span><span>{incident.authorization.authorizerRank}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-muted-foreground">Catalog/Ref</span><span>{incident.authorization.catalog}</span></div>
+                </CardContent>
+            </Card>
         </div>
       </div>
     </div>

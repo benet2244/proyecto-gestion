@@ -10,6 +10,18 @@ export const IncidentStatusSchema = z.enum([
 ]);
 export type IncidentStatus = z.infer<typeof IncidentStatusSchema>;
 
+export const ApplicationStatusSchema = z.enum([
+    'compromised-malware', 
+    'tools', 
+    'config-changes', 
+    'accessed-confirmed', 
+    'unauthorized-access', 
+    'potentially-accessed', 
+    'suspected-unauthorized-access'
+]);
+export type ApplicationStatus = z.infer<typeof ApplicationStatusSchema>;
+
+
 export type Incident = {
   id: string;
   title: string;
@@ -85,6 +97,30 @@ export type Incident = {
     rfi: 'Unanswered' | 'Awaiting Response' | 'Answered';
     response: string;
     sourceFile?: string; // Name of the uploaded file
+  };
+  evidenceTracker: {
+    id: string;
+    evidenceType: string;
+    evidenceSource: string;
+    date: string;
+    dateReceived: string;
+    evidenceLocation: string;
+    notes: string;
+  }[];
+  applications: {
+    id: string;
+    submittedBy: string;
+    status: ApplicationStatus;
+  }[];
+  forensics: {
+    id: string;
+    highFidelityForensicKeywords: string;
+    note: string;
+  }[];
+  authorization: {
+    authorizerName: string;
+    authorizerRank: string;
+    catalog: string;
   };
 };
 

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
-import { Incident, IncidentStatusSchema } from "@/lib/definitions"
+import { Incident, IncidentStatusSchema, ApplicationStatusSchema } from "@/lib/definitions"
 import {
   Accordion,
   AccordionContent,
@@ -218,6 +218,106 @@ function IntelligenceForm() {
     )
 }
 
+function EvidenceTrackerForm() {
+    return (
+        <div>
+            <div className="flex justify-end mb-2">
+                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Evidence</Button>
+            </div>
+            <div className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-end gap-2">
+                    <FormItem className="flex-1">
+                        <FormLabel>Evidence Type</FormLabel>
+                        <FormControl><Input placeholder="e.g., Log File, Screenshot"/></FormControl>
+                    </FormItem>
+                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <FormItem><FormLabel>Source</FormLabel><FormControl><Input placeholder="e.g., SIEM"/></FormControl></FormItem>
+                    <FormItem><FormLabel>Date</FormLabel><FormControl><Input type="date"/></FormControl></FormItem>
+                    <FormItem><FormLabel>Date Received</FormLabel><FormControl><Input type="date"/></FormControl></FormItem>
+                    <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., Case Folder"/></FormControl></FormItem>
+                </div>
+                <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl><Textarea placeholder="Evidence notes..."/></FormControl>
+                </FormItem>
+            </div>
+        </div>
+    )
+}
+
+function ApplicationForm() {
+    return (
+        <div>
+            <div className="flex justify-end mb-2">
+                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Application</Button>
+            </div>
+            <div className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-end gap-2">
+                     <FormItem className="flex-1">
+                        <FormLabel>Submitted By</FormLabel>
+                        <FormControl><Input placeholder="Analyst Name"/></FormControl>
+                    </FormItem>
+                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
+                </div>
+                <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                        <SelectContent>
+                            {ApplicationStatusSchema.options.map(status => (
+                                <SelectItem key={status} value={status}>{status.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </FormItem>
+            </div>
+        </div>
+    )
+}
+
+function ForensicForm() {
+    return (
+        <div>
+             <div className="flex justify-end mb-2">
+                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Entry</Button>
+            </div>
+            <div className="border rounded-lg p-4 space-y-4">
+                 <div className="flex items-end gap-2">
+                    <FormItem className="flex-1">
+                        <FormLabel>High Fidelity Forensic Keywords</FormLabel>
+                        <FormControl><Input placeholder="Keywords..."/></FormControl>
+                    </FormItem>
+                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
+                </div>
+                 <FormItem>
+                    <FormLabel>Note</FormLabel>
+                    <FormControl><Textarea placeholder="Forensic notes..."/></FormControl>
+                </FormItem>
+            </div>
+        </div>
+    )
+}
+
+function AuthorizationForm() {
+    return (
+        <div className="grid grid-cols-3 gap-4">
+            <FormItem>
+                <FormLabel>Authorizer Name</FormLabel>
+                <FormControl><Input placeholder="e.g., John Doe"/></FormControl>
+            </FormItem>
+             <FormItem>
+                <FormLabel>Authorizer Rank/Title</FormLabel>
+                <FormControl><Input placeholder="e.g., CISO"/></FormControl>
+            </FormItem>
+             <FormItem>
+                <FormLabel>Catalog/Reference</FormLabel>
+                <FormControl><Input placeholder="e.g., Legal Hold #123"/></FormControl>
+            </FormItem>
+        </div>
+    )
+}
+
 
 // Main Component
 interface IncidentFormProps {
@@ -357,6 +457,26 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
              <AccordionItem value="intelligence" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger className="font-headline text-lg">Intelligence</AccordionTrigger>
                 <AccordionContent><IntelligenceForm /></AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="evidence-tracker" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="font-headline text-lg">Evidence Tracker</AccordionTrigger>
+                <AccordionContent><EvidenceTrackerForm /></AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="application" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="font-headline text-lg">Application</AccordionTrigger>
+                <AccordionContent><ApplicationForm /></AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="forensic" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="font-headline text-lg">Forensic</AccordionTrigger>
+                <AccordionContent><ForensicForm /></AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="authorization" className="border rounded-lg px-4 bg-card">
+                <AccordionTrigger className="font-headline text-lg">Authorization</AccordionTrigger>
+                <AccordionContent><AuthorizationForm /></AccordionContent>
             </AccordionItem>
 
         </Accordion>

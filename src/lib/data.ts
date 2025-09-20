@@ -79,6 +79,36 @@ export const incidents: Incident[] = [
       rfi: 'Answered',
       response: 'The phishing campaign is linked to the FIN8 threat actor group.',
     },
+    evidenceTracker: [
+        {
+            id: 'EV-001',
+            evidenceType: 'Email',
+            evidenceSource: 'Phishing Report',
+            date: '2024-07-20',
+            dateReceived: '2024-07-20',
+            evidenceLocation: 'SecurityOnion Case #SO-123',
+            notes: 'Original phishing email with headers.',
+        }
+    ],
+    applications: [
+        {
+            id: 'APP-001',
+            submittedBy: 'Alice Johnson',
+            status: 'compromised-malware'
+        }
+    ],
+    forensics: [
+        {
+            id: 'FOR-001',
+            highFidelityForensicKeywords: 'FIN8, invoice.exe, PowerShell',
+            note: 'Forensic analysis of FINANCE-PC-01 shows evidence of lateral movement attempts.'
+        }
+    ],
+    authorization: {
+        authorizerName: 'General Counsel',
+        authorizerRank: 'Director',
+        catalog: 'Legal Hold #LH-2024-08'
+    }
   },
   {
     id: 'INC-002',
@@ -99,6 +129,10 @@ export const incidents: Incident[] = [
     hostIndicators: [],
     networkIndicators: [],
     intelligence: { status: 'Green', rfi: 'Unanswered', response: '' },
+    evidenceTracker: [],
+    applications: [],
+    forensics: [],
+    authorization: { authorizerName: '', authorizerRank: '', catalog: '' },
   },
   {
     id: 'INC-003',
@@ -115,6 +149,10 @@ export const incidents: Incident[] = [
     hostIndicators: [],
     networkIndicators: [],
     intelligence: { status: 'Yellow', rfi: 'Unanswered', response: '' },
+    evidenceTracker: [],
+    applications: [],
+    forensics: [],
+    authorization: { authorizerName: '', authorizerRank: '', catalog: '' },
   },
     {
     id: 'INC-004',
@@ -134,6 +172,10 @@ export const incidents: Incident[] = [
     hostIndicators: [],
     networkIndicators: [],
     intelligence: { status: 'Red', rfi: 'Awaiting Response', response: '' },
+    evidenceTracker: [],
+    applications: [],
+    forensics: [],
+    authorization: { authorizerName: '', authorizerRank: '', catalog: '' },
   },
   {
     id: 'INC-005',
@@ -153,6 +195,10 @@ export const incidents: Incident[] = [
     hostIndicators: [],
     networkIndicators: [],
     intelligence: { status: 'Green', rfi: 'Answered', response: 'N/A' },
+    evidenceTracker: [],
+    applications: [],
+    forensics: [],
+    authorization: { authorizerName: '', authorizerRank: '', catalog: '' },
   }
 ];
 
