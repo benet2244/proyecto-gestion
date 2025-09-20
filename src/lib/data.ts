@@ -1,4 +1,4 @@
-import { Incident, NewsArticle } from '@/lib/definitions';
+import { Incident, NewsArticle, Detection } from '@/lib/definitions';
 
 export const incidents: Incident[] = [
   {
@@ -65,6 +65,41 @@ export const incidents: Incident[] = [
        { timestamp: '2024-07-18T16:30:00Z', update: 'New SSL certificate has been installed and verified.' },
     ]
   }
+];
+
+export const detections: Detection[] = [
+    {
+        id: 'DET-001',
+        tipo_incidente: 'Malware',
+        prioridad: 'Alta',
+        fecha_incidente: '2024-07-23T10:00:00Z',
+        responsable: 'Juan Perez',
+        equipo_afectado: 'LAPTOP-MKT-05',
+        direccion_mac: '00:1B:44:11:3A:B7',
+        dependencia: 'Marketing',
+        estado_equipo: 'Operativo con lentitud',
+        acciones_tomadas: 'Aislamiento de la red, análisis antivirus iniciado.',
+        hash: 'e4d909c290d0fb1ca068ffaddf22cbd0',
+        nivel_amenaza: 'Alto',
+        detalles: 'Se detectó un hash malicioso correspondiente a un troyano conocido. El usuario reportó lentitud en el equipo.',
+        estado: 'Abierto',
+    },
+    {
+        id: 'DET-002',
+        tipo_incidente: 'Intento de Phishing',
+        prioridad: 'Media',
+        fecha_incidente: '2024-07-22T15:30:00Z',
+        responsable: 'Maria Garcia',
+        equipo_afectado: 'PC-FIN-02',
+        direccion_mac: 'A8:20:66:01:12:C1',
+        dependencia: 'Finanzas',
+        estado_equipo: 'Operativo',
+        acciones_tomadas: 'Se eliminó el correo y se bloqueó al remitente. Se recordó al usuario sobre políticas de seguridad.',
+        hash: 'N/A',
+        nivel_amenaza: 'Bajo',
+        detalles: 'El usuario recibió un correo sospechoso con un enlace para "verificar su cuenta". No hizo clic en el enlace.',
+        estado: 'Cerrado',
+    }
 ];
 
 export const newsArticles: NewsArticle[] = [

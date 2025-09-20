@@ -32,3 +32,20 @@ export type NewsArticle = {
   category: NewsCategory;
   content: string;
 };
+
+export type Detection = {
+  id: string;
+  tipo_incidente: string;
+  prioridad: 'Baja' | 'Media' | 'Alta' | 'Crítica';
+  fecha_incidente: string;
+  responsable: string;
+  equipo_afectado: string;
+  direccion_mac: string;
+  dependencia: string;
+  estado_equipo: string;
+  acciones_tomadas: string;
+  hash: string;
+  nivel_amenaza: 'No Detectado' | 'Bajo' | 'Medio' | 'Alto' | 'Crítico';
+  detalles: string;
+  estado: 'Abierto' | 'Pendiente' | 'Cerrado';
+};
