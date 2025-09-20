@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
-import { Incident } from '@/lib/definitions';
+import { Incident, IncidentStatus } from '@/lib/definitions';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -42,12 +42,24 @@ const severityVariant: { [key: string]: 'default' | 'secondary' | 'destructive' 
   Critical: 'destructive',
 };
 
-const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
-  Open: 'default',
-  'In Progress': 'default',
-  Closed: 'secondary',
-  Resolved: 'secondary',
+const statusVariant: { [key in IncidentStatus]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
+  'Identificación': 'default',
+  'Contención': 'default',
+  'Mitigación': 'default',
+  'Recuperación': 'default',
+  'Post-incidente': 'secondary',
+  'Cerrado': 'secondary',
 };
+
+const statusColor: { [key in IncidentStatus]: string } = {
+  'Identificación': 'bg-blue-500',
+  'Contención': 'bg-orange-500',
+  'Mitigación': 'bg-yellow-500',
+  'Recuperación': 'bg-purple-500',
+  'Post-incidente': '', // Uses secondary variant default
+  'Cerrado': '', // Uses secondary variant default
+};
+
 
 export default function IncidentsTable({ incidents, isDashboard = false }: IncidentsTableProps) {
   const router = useRouter();
@@ -83,7 +95,7 @@ export default function IncidentsTable({ incidents, isDashboard = false }: Incid
               </Badge>
             </TableCell>
             <TableCell>
-              <Badge variant={statusVariant[incident.status] || 'default'} className={cn(incident.status === "In Progress" ? "bg-blue-500 text-white" : "", incident.status === "Open" ? "bg-green-500 text-white" : "")}>
+              <Badge variant={statusVariant[incident.status] || 'default'} className={cn(statusColor[incident.status], "text-white")}>
                 {incident.status}
               </Badge>
             </TableCell>

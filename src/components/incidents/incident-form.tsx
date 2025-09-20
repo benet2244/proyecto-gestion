@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
-import { Incident } from "@/lib/definitions"
+import { Incident, IncidentStatusSchema } from "@/lib/definitions"
 
 const FormSchema = z.object({
   title: z.string().min(10, {
@@ -34,7 +34,7 @@ const FormSchema = z.object({
     message: "Description must be at least 20 characters.",
   }),
   severity: z.enum(["Low", "Medium", "High", "Critical"]),
-  status: z.enum(["Open", "In Progress", "Resolved", "Closed"]),
+  status: IncidentStatusSchema,
 })
 
 interface IncidentFormProps {
@@ -48,7 +48,7 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
         title: incident?.title || "",
         description: incident?.description || "",
         severity: incident?.severity || "Medium",
-        status: incident?.status || "Open",
+        status: incident?.status || "Identificación",
     }
   })
 
@@ -133,10 +133,9 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
                     </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                        <SelectItem value="Open">Open</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="Resolved">Resolved</SelectItem>
-                        <SelectItem value="Closed">Closed</SelectItem>
+                        {IncidentStatusSchema.options.map(status => (
+                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
                 <FormMessage />

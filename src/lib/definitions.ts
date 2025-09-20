@@ -1,10 +1,20 @@
 import { z } from 'zod';
 
+export const IncidentStatusSchema = z.enum([
+  'Identificación',
+  'Contención',
+  'Mitigación',
+  'Recuperación',
+  'Post-incidente',
+  'Cerrado',
+]);
+export type IncidentStatus = z.infer<typeof IncidentStatusSchema>;
+
 export type Incident = {
   id: string;
   title: string;
   description: string;
-  status: 'Open' | 'In Progress' | 'Closed' | 'Resolved';
+  status: IncidentStatus;
   severity: 'Low' | 'Medium' | 'High' | 'Critical';
   reportedAt: string;
   reporter: {
