@@ -325,28 +325,32 @@ export default function IncidentDetailPage({
             </CardContent>
           </Card>
            <Card>
-            <CardHeader>
-              <CardTitle className="font-headline">Workstream Assignment</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Responder</TableHead>
-                    <TableHead>Role</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {incident.workstreamAssignment.map(assignment => (
-                    <TableRow key={assignment.id}>
-                      <TableCell>{assignment.name}</TableCell>
-                      <TableCell><Badge variant="secondary">{assignment.role}</Badge></TableCell>
-                    </TableRow>
-                  ))}
-                  {incident.workstreamAssignment.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">No assignments yet.</TableCell></TableRow>}
-                </TableBody>
-              </Table>
-            </CardContent>
+                <CardHeader>
+                <CardTitle className="font-headline">Workstream Assignment</CardTitle>
+                </CardHeader>
+                <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Role</TableHead>
+                            <TableHead>Assigned To</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {incident.workstreamAssignment && Object.entries(incident.workstreamAssignment).map(([role, name]) => name && (
+                            <TableRow key={role}>
+                                <TableCell className="capitalize">{role}</TableCell>
+                                <TableCell>{name}</TableCell>
+                            </TableRow>
+                        ))}
+                         {(!incident.workstreamAssignment || Object.values(incident.workstreamAssignment).every(v => !v)) && (
+                            <TableRow>
+                                <TableCell colSpan={2} className="text-center text-muted-foreground">No assignments yet.</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+                </CardContent>
            </Card>
            <Card>
             <CardHeader>

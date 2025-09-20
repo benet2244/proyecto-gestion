@@ -34,10 +34,12 @@ import {
 
 // Schemas for sub-sections
 const WorkstreamAssignmentSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(1, "Name is required"),
-  role: z.enum(["Scoping", "Triage", "Intelligence", "Impact"]),
+  scoping: z.string().optional(),
+  triage: z.string().optional(),
+  intelligence: z.string().optional(),
+  impact: z.string().optional(),
 });
+
 
 const WorkstreamTrackerSchema = z.object({
   id: z.string().optional(),
@@ -102,7 +104,7 @@ const FormSchema = z.object({
   }),
   severity: z.enum(["Low", "Medium", "High", "Critical"]),
   status: IncidentStatusSchema,
-  workstreamAssignment: z.array(WorkstreamAssignmentSchema).optional(),
+  workstreamAssignment: WorkstreamAssignmentSchema.optional(),
   workstreamTracker: z.array(WorkstreamTrackerSchema).optional(),
   systems: z.array(SystemSchema).optional(),
   hostIndicators: z.array(HostIndicatorSchema).optional(),
@@ -131,57 +133,65 @@ interface SectionProps<T> {
 }
 
 // Section Components
-function WorkstreamAssignmentForm({ control, incident }: SectionProps<any>) {
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: "workstreamAssignment",
-    });
-
-    return (
-         <div>
-            <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ name: "", role: "Scoping" })}><PlusCircle className="mr-2"/>Add Responder</Button>
-            </div>
-            <div className="border rounded-lg p-4 space-y-4">
-                {fields.map((field, index) => (
-                    <div key={field.id} className="flex items-end gap-2 border-b pb-4 last:border-b-0 last:pb-0">
-                         <FormField
-                            control={control}
-                            name={`workstreamAssignment.${index}.name`}
-                            render={({ field }) => (
-                                <FormItem className="flex-1">
-                                    <FormLabel>Responder #{index + 1}</FormLabel>
-                                    <FormControl><Input placeholder="Assignee Name..." {...field} /></FormControl>
-                                     <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={control}
-                            name={`workstreamAssignment.${index}.role`}
-                            render={({ field }) => (
-                                <FormItem className="w-1/3">
-                                    <FormLabel>Role</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="Scoping">Scoping</SelectItem>
-                                            <SelectItem value="Triage">Triage</SelectItem>
-                                            <SelectItem value="Intelligence">Intelligence</SelectItem>
-                                            <SelectItem value="Impact">Impact</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </FormItem>
-                            )}
-                        />
-                        <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
-                    </div>
-                ))}
-                {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No responders added yet.</p>}
-            </div>
-        </div>
-    )
+function WorkstreamAssignmentForm({ control }: SectionProps<any>) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-4 border rounded-lg">
+      <FormField
+        control={control}
+        name="workstreamAssignment.scoping"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Scoping</FormLabel>
+            <FormControl>
+              <Input placeholder="Assignee Name..." {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name="workstreamAssignment.triage"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Triage</FormLabel>
+            <FormControl>
+              <Input placeholder="Assignee Name..." {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name="workstreamAssignment.intelligence"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Intelligence</FormLabel>
+            <FormControl>
+              <Input placeholder="Assignee Name..." {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name="workstreamAssignment.impact"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Impact</FormLabel>
+            <FormControl>
+              <Input placeholder="Assignee Name..." {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
 }
+
 
 function WorkstreamTrackerForm({ control }: SectionProps<any>) {
     const { fields, append, remove } = useFieldArray({
@@ -527,7 +537,7 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
         description: incident?.description || "",
         severity: incident?.severity || "Medium",
         status: incident?.status || "Identificación",
-        workstreamAssignment: incident?.workstreamAssignment || [],
+        workstreamAssignment: incident?.workstreamAssignment || { scoping: "", triage: "", intelligence: "", impact: "" },
         workstreamTracker: incident?.workstreamTracker.map(t => ({...t, priority: t.priority as "Alta" | "Media" | "Baja", status: t.status as "New" | "In Progress" | "Complete"})) || [],
         systems: incident?.systems || [],
         hostIndicators: incident?.hostIndicators.map(h => ({...h, notes: h.notes || ''})) || [],

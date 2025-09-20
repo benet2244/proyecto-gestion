@@ -42,10 +42,11 @@ export type Incident = {
     update: string;
   }[];
   workstreamAssignment: {
-    id: string;
-    name: string;
-    role: 'Scoping' | 'Triage' | 'Intelligence' | 'Impact';
-  }[];
+    scoping?: string;
+    triage?: string;
+    intelligence?: string;
+    impact?: string;
+  };
   workstreamTracker: {
     id: string;
     date: string;
