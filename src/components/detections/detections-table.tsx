@@ -29,6 +29,20 @@ import { Detection } from '@/lib/definitions';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import React from 'react';
+
 
 interface DetectionsTableProps {
   detections: Detection[];
@@ -44,12 +58,22 @@ const threatLevelVariant: { [key: string]: 'default' | 'secondary' | 'destructiv
 
 export default function DetectionsTable({ detections }: DetectionsTableProps) {
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleViewDetails = (id: string) => {
-    // This will be implemented later
-    // router.push(`/dashboard/detections/${id}`);
-    console.log("View details for", id)
+    router.push(`/dashboard/detections/${id}`);
   };
+
+  const handleDelete = (id: string) => {
+    // In a real app, you'd call an API to delete the detection.
+    // Here we just show a toast.
+    console.log("Deleting detection", id);
+    toast({
+        title: "Detection Deleted",
+        description: `Detection ${id} has been successfully deleted.`,
+    });
+    // You might want to refetch or update the local state here.
+  }
 
   return (
     <Card>
@@ -90,26 +114,47 @@ export default function DetectionsTable({ detections }: DetectionsTableProps) {
                     {detection.tipo_incidente}
                 </TableCell>
                 <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleViewDetails(detection.id)}>
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        {/* <Link href={`/dashboard/detections/${detection.id}/edit`}>Edit</Link> */}
-                         <Link href={`#`}>Edit</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <AlertDialog>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewDetails(detection.id)}>
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/detections/${detection.id}/edit`}>Edit</Link>
+                        </DropdownMenuItem>
+                        <AlertDialogTrigger asChild>
+                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                Delete
+                            </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the detection
+                                <span className="font-bold"> {detection.id}</span>.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                className={cn(buttonVariants({ variant: "destructive" }))}
+                                onClick={() => handleDelete(detection.id)}
+                            >
+                                Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}

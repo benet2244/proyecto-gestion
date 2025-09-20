@@ -55,16 +55,11 @@ const FormSchema = z.object({
 })
 
 interface DetectionFormProps {
-    detection?: Detection
+    detection?: Detection,
+    isEditMode?: boolean,
 }
 
-const getTodayAtMidnight = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today;
-}
-
-export default function DetectionForm({ detection }: DetectionFormProps) {
+export default function DetectionForm({ detection, isEditMode = false }: DetectionFormProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -146,7 +141,7 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
                 <FormItem>
                 <FormLabel>Tipo de Incidente</FormLabel>
                 <FormControl>
-                    <Input placeholder="e.g., Malware, Phishing" {...field} />
+                    <Input placeholder="e.g., Malware, Phishing" {...field} disabled={isEditMode}/>
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -158,7 +153,7 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>Prioridad</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditMode}>
                     <FormControl>
                     <SelectTrigger><SelectValue placeholder="Seleccione una prioridad" /></SelectTrigger>
                     </FormControl>
@@ -191,6 +186,7 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
                                 "pl-3 text-left font-normal",
                                 !field.value && "text-muted-foreground"
                             )}
+                            disabled={isEditMode}
                             >
                             {field.value ? (
                                 format(field.value, "PPP")
@@ -206,9 +202,7 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                            }
+                            disabled
                             initialFocus
                         />
                         </PopoverContent>
@@ -224,7 +218,7 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
                     <FormItem>
                     <FormLabel>Responsable</FormLabel>
                     <FormControl>
-                        <Input placeholder="Nombre del analista" {...field} />
+                        <Input placeholder="Nombre del analista" {...field} disabled={isEditMode}/>
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -240,7 +234,7 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
                     <FormItem>
                     <FormLabel>Equipo Afectado</FormLabel>
                     <FormControl>
-                        <Input placeholder="e.g., LAPTOP-MKT-05" {...field} />
+                        <Input placeholder="e.g., LAPTOP-MKT-05" {...field} disabled={isEditMode}/>
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -269,7 +263,7 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
                     <FormItem>
                     <FormLabel>Dependencia</FormLabel>
                     <FormControl>
-                        <Input placeholder="e.g., Marketing, Finanzas" {...field} />
+                        <Input placeholder="e.g., Marketing, Finanzas" {...field} disabled={isEditMode}/>
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -324,9 +318,9 @@ export default function DetectionForm({ detection }: DetectionFormProps) {
                     <FormLabel>Hash (MD5, SHA1, SHA256)</FormLabel>
                     <div className="flex gap-2">
                         <FormControl>
-                            <Input placeholder="Hash del archivo sospechoso..." {...field} />
+                            <Input placeholder="Hash del archivo sospechoso..." {...field} disabled={isEditMode}/>
                         </FormControl>
-                        <Button type="button" onClick={handleAnalyzeHash} disabled={isAnalyzing}>
+                        <Button type="button" onClick={handleAnalyzeHash} disabled={isAnalyzing || isEditMode}>
                             {isAnalyzing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Analizar
                         </Button>
