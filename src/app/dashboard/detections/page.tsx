@@ -1,46 +1,50 @@
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Download } from 'lucide-react';
+import { PlusCircle, Download, FileSpreadsheet } from 'lucide-react';
 import Link from 'next/link';
 
 import DetectionsTable from '@/components/detections/detections-table';
-import { Detection } from '@/lib/definitions';
+import { getDetections } from '@/lib/actions';
 
-async function getDetectionsData(): Promise<Detection[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-  const res = await fetch(`${baseUrl}/api/detections`, { cache: 'no-store' });
-  if (!res.ok) {
-    throw new Error('Failed to fetch detections');
-  }
-  return res.json();
-}
-
+// URL pública para los enlaces que usará el navegador
+const PUBLIC_API_URL = "http://localhost:8080/backend";
 
 export default async function DetectionsPage() {
-  const detections = await getDetectionsData();
+  // Obtener datos desde el backend de PHP (comunicación servidor a servidor)
+  const detections = await getDetections();
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-            {/* Can be used for filters in future */}
+            {/* Espacio reservado para futuros filtros */}
         </div>
         <div className="flex gap-2">
-            <Button variant="outline">Export PDF</Button>
-            <Button variant="outline">Export Excel</Button>
-            <Button variant="secondary" asChild>
-                <Link href="/api/backup">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Backup
-                </Link>
+            {/* Botón para exportar a CSV (usado por el navegador) */}
+            <Button variant="outline" asChild>
+                <a href={`${PUBLIC_API_URL}/export_detections.php`} target="_blank">
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Exportar CSV
+                </a>
             </Button>
+
+            {/* Botón para descargar backup (usado por el navegador) */}
+            <Button variant="secondary" asChild>
+                <a href={`${PUBLIC_API_URL}/backup_detections.php`} target="_blank">
+                    <Download className="mr-2 h-4 w-4" />
+                    Descargar Backup
+                </a>
+            </Button>
+
+            {/* Botón para crear nueva detección */}
             <Button asChild>
                 <Link href="/dashboard/detections/new">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                New Detection
+                Nueva Detección
                 </Link>
             </Button>
         </div>
       </div>
+      {/* Pasar los datos reales a la tabla */}
       <DetectionsTable detections={detections} />
     </div>
   );

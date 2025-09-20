@@ -1,0 +1,64 @@
+
+version: '3.8'
+
+services:
+  # Servicio de la Base de Datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: unless-stopped
+    env_file: ./.env # Lee las variables desde .env
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  # Servicio del Backend (PHP + Apache)
+  php-apache-server:
+    build:
+      context: ./php
+    container_name: php-apache-server
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file: ./.env # <--- AHORA EL BACKEND TAMBIÉN LEE EL .ENV
+    ports:
+      - "8080:80"
+    volumes:
+      - ./backend:/var/www/html/backend
+    networks:
+      - app-network
+
+  # Servicio del Frontend (Next.js)
+  next-app:
+    build:
+      context: .
+    container_name: next-app
+    restart: unless-stopped
+    depends_on:
+      - php-apache-server
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/.next
+    networks:
+      - app-network
+
+# Red para la comunicación entre contenedores
+networks:
+  app-network:
+    driver: bridge
+
+# Volumen para la persistencia de datos de la base de datos
+volumes:
+  mysql_data:
