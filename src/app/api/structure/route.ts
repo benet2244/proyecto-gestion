@@ -16,7 +16,7 @@ export async function GET() {
         
         const headers = new Headers();
         headers.set('Content-Type', 'application/json');
-        headers.set('Content-Disposition', `attachment; filename="ciberseg-vistazo-structure-${timestamp}.json"`);
+        headers.set('Content-Disposition', `inline; filename="ciberseg-vistazo-structure-${timestamp}.json"`);
 
         return new NextResponse(jsonString, { headers });
 

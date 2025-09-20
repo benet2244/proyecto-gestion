@@ -140,7 +140,7 @@ export default function SidebarNav() {
              <ul className="grid items-start">
              {utilityItems.map(({ href, icon: Icon, label }) => (
                 <li key={label}>
-                    <Link href={href} target="_blank" rel="noopener noreferrer">
+                    <Link href={href}>
                         <Button
                             variant={'ghost'}
                             className="w-full justify-start"
