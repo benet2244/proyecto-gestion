@@ -46,6 +46,7 @@ import React from 'react';
 
 interface DetectionsTableProps {
   detections: Detection[];
+  isDashboard?: boolean;
 }
 
 const threatLevelVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -56,7 +57,7 @@ const threatLevelVariant: { [key: string]: 'default' | 'secondary' | 'destructiv
   'Crítico': 'destructive',
 };
 
-export default function DetectionsTable({ detections }: DetectionsTableProps) {
+export default function DetectionsTable({ detections, isDashboard = false }: DetectionsTableProps) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -75,6 +76,91 @@ export default function DetectionsTable({ detections }: DetectionsTableProps) {
     // You might want to refetch or update the local state here.
   }
 
+  const TableContent = () => (
+     <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Equipo Afectado</TableHead>
+          <TableHead>Nivel de Amenaza</TableHead>
+          {!isDashboard && <TableHead>Dependencia</TableHead>}
+          {!isDashboard && <TableHead>Tipo de Incidente</TableHead>}
+          <TableHead>
+            <span className="sr-only">Actions</span>
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {detections.map((detection) => (
+          <TableRow key={detection.id}>
+            <TableCell>
+              <div className="font-medium">{detection.equipo_afectado}</div>
+            </TableCell>
+            <TableCell>
+              <Badge variant={threatLevelVariant[detection.nivel_amenaza] || 'default'} className={cn(detection.nivel_amenaza === "Medio" && "bg-yellow-500 text-white")}>
+                {detection.nivel_amenaza}
+              </Badge>
+            </TableCell>
+            {!isDashboard && <TableCell>{detection.dependencia}</TableCell>}
+            {!isDashboard && <TableCell>{detection.tipo_incidente}</TableCell>}
+            <TableCell>
+              <AlertDialog>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleViewDetails(detection.id)}>
+                      View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/detections/${detection.id}/edit`}>Edit</Link>
+                    </DropdownMenuItem>
+                    <AlertDialogTrigger asChild>
+                        <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                            Delete
+                        </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the detection
+                            <span className="font-bold"> {detection.id}</span>.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className={cn(buttonVariants({ variant: "destructive" }))}
+                            onClick={() => handleDelete(detection.id)}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
+  if (isDashboard) {
+    return (
+        <Card>
+            <CardContent className="p-0">
+                <TableContent />
+            </CardContent>
+        </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -84,82 +170,7 @@ export default function DetectionsTable({ detections }: DetectionsTableProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Equipo Afectado</TableHead>
-              <TableHead>Nivel de Amenaza</TableHead>
-              <TableHead>Dependencia</TableHead>
-              <TableHead>Tipo de Incidente</TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {detections.map((detection) => (
-              <TableRow key={detection.id}>
-                <TableCell>
-                  <div className="font-medium">{detection.equipo_afectado}</div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={threatLevelVariant[detection.nivel_amenaza] || 'default'} className={cn(detection.nivel_amenaza === "Medio" && "bg-yellow-500 text-white")}>
-                    {detection.nivel_amenaza}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                    {detection.dependencia}
-                </TableCell>
-                 <TableCell>
-                    {detection.tipo_incidente}
-                </TableCell>
-                <TableCell>
-                  <AlertDialog>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewDetails(detection.id)}>
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/detections/${detection.id}/edit`}>Edit</Link>
-                        </DropdownMenuItem>
-                        <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                Delete
-                            </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the detection
-                                <span className="font-bold"> {detection.id}</span>.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                                className={cn(buttonVariants({ variant: "destructive" }))}
-                                onClick={() => handleDelete(detection.id)}
-                            >
-                                Delete
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <TableContent />
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">
