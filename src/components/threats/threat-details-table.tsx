@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { MonthlyThreatLog, ThreatCategories, ThreatCategory } from '@/lib/definitions';
+import { formatNumber } from '@/lib/utils';
 
 interface ThreatDetailsTableProps {
   logData: MonthlyThreatLog;
@@ -40,6 +41,8 @@ export default function ThreatDetailsTable({ logData }: ThreatDetailsTableProps)
     });
     return totals;
   }, [logData]);
+
+  const grandTotal = Object.values(monthlyTotals).reduce((a, b) => a + b, 0);
 
   return (
     <Card>
@@ -64,8 +67,8 @@ export default function ThreatDetailsTable({ logData }: ThreatDetailsTableProps)
                         <TableRow key={cat.key}>
                             <TableCell className="font-medium">{cat.label}</TableCell>
                             {/* NOTE: Currently showing same value. Will change when date-picker is wired */}
-                            <TableCell className="text-right">{monthlyTotals[cat.key]}</TableCell>
-                            <TableCell className="text-right">{monthlyTotals[cat.key]}</TableCell>
+                            <TableCell className="text-right">{formatNumber(monthlyTotals[cat.key])}</TableCell>
+                            <TableCell className="text-right">{formatNumber(monthlyTotals[cat.key])}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -73,10 +76,10 @@ export default function ThreatDetailsTable({ logData }: ThreatDetailsTableProps)
                     <TableRow>
                         <TableCell className="font-bold">TOTAL</TableCell>
                          <TableCell className="text-right font-bold">
-                            {Object.values(monthlyTotals).reduce((a, b) => a + b, 0)}
+                            {formatNumber(grandTotal)}
                         </TableCell>
                         <TableCell className="text-right font-bold">
-                            {Object.values(monthlyTotals).reduce((a, b) => a + b, 0)}
+                            {formatNumber(grandTotal)}
                         </TableCell>
                     </TableRow>
                 </TableFooter>
@@ -86,4 +89,3 @@ export default function ThreatDetailsTable({ logData }: ThreatDetailsTableProps)
     </Card>
   );
 }
-
