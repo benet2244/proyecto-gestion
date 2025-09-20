@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -70,6 +71,7 @@ export default function Header({ pageTitle }: HeaderProps) {
             variant="outline"
             size="icon"
             className="overflow-hidden rounded-full"
+            aria-label="Open user menu"
           >
             <User />
           </Button>

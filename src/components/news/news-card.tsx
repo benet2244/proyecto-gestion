@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -57,7 +58,7 @@ export default function NewsCard({ article, onSummarize, onSave, isSaved }: News
             </Button>
         </div>
         <Button variant="ghost" size="icon" asChild>
-            <Link href={article.url} target="_blank">
+            <Link href={article.url} target="_blank" aria-label={`Read full article: ${article.title}`}>
                 <ExternalLink className="h-4 w-4" />
             </Link>
         </Button>
