@@ -38,10 +38,12 @@ const FormSchema = z.object({
 })
 
 interface IncidentFormProps {
-    incident?: Incident
+    incident?: Incident;
 }
 
 export default function IncidentForm({ incident }: IncidentFormProps) {
+  const isEditMode = !!incident;
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -73,7 +75,7 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Phishing Attack on Finance Department" {...field} />
+                <Input placeholder="e.g., Phishing Attack on Finance Department" {...field} disabled={isEditMode} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -90,6 +92,7 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
                   placeholder="Provide a detailed description of the incident..."
                   className="resize-none"
                   {...field}
+                  disabled={isEditMode}
                 />
               </FormControl>
               <FormMessage />
