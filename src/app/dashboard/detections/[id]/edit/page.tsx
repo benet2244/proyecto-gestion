@@ -13,8 +13,9 @@ import { Detection } from '@/lib/definitions';
 
 
 async function getDetection(id: string): Promise<Detection | undefined> {
-    const { getDetectionById } = await import('@/lib/data');
-    return getDetectionById(id);
+    const res = await fetch(`http://localhost:9002/api/detections/${id}`, { cache: 'no-store' });
+    if (!res.ok) return undefined;
+    return res.json();
 }
 
 

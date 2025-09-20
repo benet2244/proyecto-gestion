@@ -20,18 +20,13 @@ import {
 } from '@/components/ui/table';
 import { ApplicationStatus, Incident } from '@/lib/definitions';
 import DeleteButton from '@/components/shared/delete-button';
+import { format } from 'date-fns';
 
 async function getIncident(id: string): Promise<Incident | null> {
   // In a real app, this would be an API call.
-  // const res = await fetch(`http://localhost:9002/api/incidents/${id}`, { cache: 'no-store' });
-  // if (!res.ok) return null;
-  // return res.json();
-
-  // For now, we import directly from our in-memory store
-  const { getIncidentById } = await import('@/lib/data');
-  const incident = getIncidentById(id);
-  if (!incident) return null;
-  return incident;
+  const res = await fetch(`http://localhost:9002/api/incidents/${id}`, { cache: 'no-store' });
+  if (!res.ok) return null;
+  return res.json();
 }
 
 
@@ -107,9 +102,9 @@ export default async function IncidentDetailPage({
                     {incident.updates.length > 0 ? incident.updates.map((update, index) => (
                     <div key={index} className="flex items-start gap-4">
                         <div className="text-sm text-muted-foreground pt-1">
-                        {new Date(update.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {format(new Date(update.timestamp), 'HH:mm')}
                         <br />
-                        {new Date(update.timestamp).toLocaleDateString()}
+                        {format(new Date(update.timestamp), 'dd/MM/yyyy')}
                         </div>
                         <div className="relative">
                         <div className="h-full w-px bg-border absolute left-2 top-2"></div>
@@ -254,7 +249,7 @@ export default async function IncidentDetailPage({
                       <TableCell>{evidence.evidenceType}</TableCell>
                        <TableCell>{evidence.evidenceSource}</TableCell>
                        <TableCell>{evidence.evidenceLocation}</TableCell>
-                      <TableCell>{new Date(evidence.dateReceived).toLocaleDateString()}</TableCell>
+                      <TableCell>{format(new Date(evidence.dateReceived), 'dd/MM/yyyy')}</TableCell>
                     </TableRow>
                   ))}
                   {incident.evidenceTracker.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No evidence tracked.</TableCell></TableRow>}
@@ -331,7 +326,7 @@ export default async function IncidentDetailPage({
                 <Separator />
                  <div className="flex flex-col gap-1">
                     <span className="text-muted-foreground">Reported At</span>
-                    <span>{new Date(incident.reportedAt).toLocaleString()}</span>
+                    <span>{format(new Date(incident.reportedAt), 'dd/MM/yyyy HH:mm')}</span>
                 </div>
             </CardContent>
           </Card>

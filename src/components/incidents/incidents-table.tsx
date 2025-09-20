@@ -30,6 +30,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import DeleteButton from '../shared/delete-button';
+import { format } from 'date-fns';
 
 interface IncidentsTableProps {
   incidents: Incident[];
@@ -89,7 +90,7 @@ export default function IncidentsTable({ incidents, isDashboard = false }: Incid
               <div className="font-medium">{incident.title}</div>
               {!isDashboard && <div className="text-sm text-muted-foreground">{incident.id}</div>}
             </TableCell>
-            {!isDashboard && <TableCell>{new Date(incident.reportedAt).toLocaleDateString()}</TableCell>}
+            {!isDashboard && <TableCell>{format(new Date(incident.reportedAt), 'dd/MM/yyyy')}</TableCell>}
             <TableCell>
               <Badge variant={severityVariant[incident.severity] || 'default'} className={cn(incident.severity === "Medium" && "bg-yellow-500 text-white")}>
                 {incident.severity}

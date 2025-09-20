@@ -13,12 +13,12 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Detection } from '@/lib/definitions';
 import DeleteButton from '@/components/shared/delete-button';
+import { format } from 'date-fns';
 
 async function getDetection(id: string): Promise<Detection | null> {
-    const { getDetectionById } = await import('@/lib/data');
-    const detection = getDetectionById(id);
-    if (!detection) return null;
-    return detection;
+    const res = await fetch(`http://localhost:9002/api/detections/${id}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return res.json();
 }
 
 
@@ -150,7 +150,7 @@ export default async function DetectionDetailPage({
                 <Separator />
                  <div className="flex flex-col gap-1">
                     <span className="text-muted-foreground">Fecha de Incidente</span>
-                    <span>{new Date(detection.fecha_incidente).toLocaleString()}</span>
+                    <span>{format(new Date(detection.fecha_incidente), 'dd/MM/yyyy HH:mm')}</span>
                 </div>
                 <Separator />
                 <div className="flex flex-col gap-1">
