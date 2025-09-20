@@ -23,12 +23,13 @@ import { formatNumber } from '@/lib/utils';
 
 interface ThreatDetailsTableProps {
   logData: MonthlyThreatLog;
+  fullMonthLogData: MonthlyThreatLog;
 }
 
 
-export default function ThreatDetailsTable({ logData }: ThreatDetailsTableProps) {
+export default function ThreatDetailsTable({ logData, fullMonthLogData }: ThreatDetailsTableProps) {
   
-  const monthlyTotals = useMemo(() => {
+  const periodTotals = useMemo(() => {
     const totals = ThreatCategories.reduce((acc, cat) => {
         acc[cat.key] = 0;
         return acc;
@@ -42,7 +43,23 @@ export default function ThreatDetailsTable({ logData }: ThreatDetailsTableProps)
     return totals;
   }, [logData]);
 
-  const grandTotal = Object.values(monthlyTotals).reduce((a, b) => a + b, 0);
+  const monthlyTotals = useMemo(() => {
+    const totals = ThreatCategories.reduce((acc, cat) => {
+        acc[cat.key] = 0;
+        return acc;
+    }, {} as Record<ThreatCategory, number>);
+
+    fullMonthLogData.entries.forEach(entry => {
+        ThreatCategories.forEach(cat => {
+            totals[cat.key] += entry[cat.key];
+        });
+    });
+    return totals;
+  }, [fullMonthLogData]);
+
+  const periodGrandTotal = Object.values(periodTotals).reduce((a, b) => a + b, 0);
+  const monthlyGrandTotal = Object.values(monthlyTotals).reduce((a, b) => a + b, 0);
+
 
   return (
     <Card>
@@ -66,8 +83,7 @@ export default function ThreatDetailsTable({ logData }: ThreatDetailsTableProps)
                     {ThreatCategories.map(cat => (
                         <TableRow key={cat.key}>
                             <TableCell className="font-medium">{cat.label}</TableCell>
-                            {/* NOTE: Currently showing same value. Will change when date-picker is wired */}
-                            <TableCell className="text-right">{formatNumber(monthlyTotals[cat.key])}</TableCell>
+                            <TableCell className="text-right">{formatNumber(periodTotals[cat.key])}</TableCell>
                             <TableCell className="text-right">{formatNumber(monthlyTotals[cat.key])}</TableCell>
                         </TableRow>
                     ))}
@@ -76,10 +92,10 @@ export default function ThreatDetailsTable({ logData }: ThreatDetailsTableProps)
                     <TableRow>
                         <TableCell className="font-bold">TOTAL</TableCell>
                          <TableCell className="text-right font-bold">
-                            {formatNumber(grandTotal)}
+                            {formatNumber(periodGrandTotal)}
                         </TableCell>
                         <TableCell className="text-right font-bold">
-                            {formatNumber(grandTotal)}
+                            {formatNumber(monthlyGrandTotal)}
                         </TableCell>
                     </TableRow>
                 </TableFooter>

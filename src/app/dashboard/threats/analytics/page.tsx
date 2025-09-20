@@ -1,9 +1,8 @@
 
 'use client';
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DateRange } from "react-day-picker";
-import { addDays } from "date-fns";
 
 import ThreatsByCategoryPieChart from "@/components/threats/charts/threats-by-category-pie-chart";
 import ThreatsTrendChart from "@/components/threats/charts/threats-trend-chart";
@@ -11,6 +10,7 @@ import { sampleThreatLogs } from "@/lib/data/threats";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import ThreatSummaryCard from "@/components/threats/threat-summary-card";
 import ThreatDetailsTable from "@/components/threats/threat-details-table";
+import { MonthlyThreatLog } from "@/lib/definitions";
 
 
 export default function ThreatAnalyticsPage() {
@@ -21,9 +21,36 @@ export default function ThreatAnalyticsPage() {
     
     // For now, we use the full month data regardless of the date picker.
     // In the future, we'll filter this data based on the selected 'date' state.
-    const logData = sampleThreatLogs.find(log => log.year === 2025 && log.month === 9);
+    const fullMonthLogData = useMemo(() => {
+        return sampleThreatLogs.find(log => log.year === 2025 && log.month === 9);
+    }, []);
 
-    if (!logData) {
+
+    const filteredLogData = useMemo((): MonthlyThreatLog | undefined => {
+        if (!fullMonthLogData) return undefined;
+        if (!date?.from) return fullMonthLogData;
+
+        const fromDate = date.from;
+        const toDate = date.to || fromDate; // If no 'to' date, use 'from'
+
+        const filteredEntries = fullMonthLogData.entries.filter(entry => {
+            const entryDate = new Date(fullMonthLogData.year, fullMonthLogData.month - 1, entry.day);
+            return entryDate >= fromDate && entryDate <= toDate;
+        });
+
+        return {
+            ...fullMonthLogData,
+            entries: filteredEntries,
+        };
+
+    }, [date, fullMonthLogData]);
+
+
+    if (!fullMonthLogData) {
+        return <p>No base threat data available for the selected period.</p>
+    }
+    
+    if (!filteredLogData) {
         return <p>No threat data available for the selected period.</p>
     }
 
@@ -36,22 +63,22 @@ export default function ThreatAnalyticsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-1">
-                    <ThreatsByCategoryPieChart logData={logData} />
+                    <ThreatsByCategoryPieChart logData={filteredLogData} />
                 </div>
                  <div className="lg:col-span-2">
-                    <ThreatSummaryCard logData={logData} />
+                    <ThreatSummaryCard logData={filteredLogData} />
                 </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
                  <div>
-                    <ThreatsTrendChart logData={logData} />
+                    <ThreatsTrendChart logData={filteredLogData} />
                 </div>
             </div>
             
             <div className="grid grid-cols-1 gap-6">
                 <div>
-                    <ThreatDetailsTable logData={logData} />
+                    <ThreatDetailsTable logData={filteredLogData} fullMonthLogData={fullMonthLogData}/>
                 </div>
             </div>
 
