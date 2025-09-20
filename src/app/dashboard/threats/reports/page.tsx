@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { DateRange } from "react-day-picker";
-import { FileDown } from "lucide-react";
+import { FileDown, Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -12,7 +12,7 @@ import ThreatSummaryCard from "@/components/threats/threat-summary-card";
 import ThreatsTrendChart from "@/components/threats/charts/threats-trend-chart";
 import ThreatDetailsTable from "@/components/threats/threat-details-table";
 import { sampleThreatLogs } from "@/lib/data/threats";
-import { MonthlyThreatLog } from "@/lib/definitions";
+import { MonthlyThreatLog, ThreatCategories } from "@/lib/definitions";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -23,6 +23,7 @@ export default function ThreatReportsPage() {
         from: new Date(2025, 8, 1), // Sep 1, 2025
         to: new Date(2025, 8, 13),   // Sep 13, 2025
     });
+    const reportPreviewRef = useRef<HTMLDivElement>(null);
     
     // For now, we use the full month data regardless of the date picker.
     // In a real app, you would fetch data based on the selected date range.
@@ -50,42 +51,85 @@ export default function ThreatReportsPage() {
 
     }, [date, fullMonthLogData]);
 
-    const handleExport = (format: 'PDF' | 'Excel') => {
-        // In a real app, you'd use a library like jsPDF, pdf-lib, or xlsx
-        // to generate the file based on the 'filteredLogData'.
-        console.log(`Exporting data for range:`, date, `to ${format}`);
-        console.log('Data to export:', filteredLogData);
+     const handlePrint = () => {
+        window.print();
+    };
+
+    const handleExportCSV = () => {
+        if (!filteredLogData) {
+            toast({
+                title: "No hay datos para exportar",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        const headers = ["Día", ...ThreatCategories.map(c => c.label), "Total"];
+        const csvRows = [headers.join(',')];
+
+        for (const entry of filteredLogData.entries) {
+            const values = [
+                `${entry.day}/${filteredLogData.month}/${filteredLogData.year}`,
+                ...ThreatCategories.map(c => entry[c.key]),
+                entry.total,
+            ];
+            csvRows.push(values.join(','));
+        }
+
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
         
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            const fromDate = date?.from?.toLocaleDateString().replace(/\//g, '-') || 'start';
+            const toDate = date?.to?.toLocaleDateString().replace(/\//g, '-') || 'end';
+            link.setAttribute('download', `threat_report_${fromDate}_to_${toDate}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         toast({
-            title: `Exportando a ${format}`,
-            description: "Esta función se implementará en el futuro.",
+            title: "Exportando a CSV",
+            description: "La descarga de tu reporte ha comenzado.",
         });
     };
+
 
     if (!fullMonthLogData || !filteredLogData) {
         return <p>No threat data available for the selected period.</p>
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="space-y-6 print:space-y-0">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 print:hidden">
                 <h1 className="text-2xl font-headline">Threat Reports</h1>
                 <div className="flex flex-col sm:flex-row gap-2">
                     <DateRangePicker date={date} setDate={setDate} />
-                    <Button onClick={() => handleExport('PDF')} variant="outline">
-                        <FileDown className="mr-2" />
+                    <Button onClick={handlePrint} variant="outline">
+                        <Printer className="mr-2" />
                         Export PDF
                     </Button>
-                     <Button onClick={() => handleExport('Excel')} variant="outline">
+                     <Button onClick={handleExportCSV} variant="outline">
                         <FileDown className="mr-2" />
-                        Export Excel
+                        Export Excel (CSV)
                     </Button>
                 </div>
             </div>
 
-            <Card>
+            <Card ref={reportPreviewRef} id="report-preview-card">
                 <CardContent className="p-6">
-                    <div id="report-preview" className="space-y-6">
+                     <style type="text/css" media="print">
+                        {`
+                        @page { size: auto; margin: 0.5in; }
+                        body { -webkit-print-color-adjust: exact; }
+                        #report-preview-card { border: none; box-shadow: none; }
+                        `}
+                    </style>
+                    <div className="space-y-6">
                         <h2 className="text-xl font-semibold text-center font-headline">
                             Threat Report Preview
                         </h2>
