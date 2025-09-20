@@ -28,6 +28,7 @@ export default function SidebarNav() {
       href: '/dashboard',
       icon: Home,
       label: 'Dashboard',
+      exact: true,
     },
     {
       href: '/dashboard/incidents',
