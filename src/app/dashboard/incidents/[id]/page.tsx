@@ -328,11 +328,24 @@ export default function IncidentDetailPage({
             <CardHeader>
               <CardTitle className="font-headline">Workstream Assignment</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-3">
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Scoping</span><span>{incident.workstreamAssignment.scoping}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Triage</span><span>{incident.workstreamAssignment.triage}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Intelligence</span><span>{incident.workstreamAssignment.intelligence}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Impact</span><span>{incident.workstreamAssignment.impact}</span></div>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Responder</TableHead>
+                    <TableHead>Role</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {incident.workstreamAssignment.map(assignment => (
+                    <TableRow key={assignment.id}>
+                      <TableCell>{assignment.name}</TableCell>
+                      <TableCell><Badge variant="secondary">{assignment.role}</Badge></TableCell>
+                    </TableRow>
+                  ))}
+                  {incident.workstreamAssignment.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">No assignments yet.</TableCell></TableRow>}
+                </TableBody>
+              </Table>
             </CardContent>
            </Card>
            <Card>

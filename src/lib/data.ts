@@ -15,12 +15,12 @@ export const incidents: Incident[] = [
       { timestamp: '2024-07-20T09:30:00Z', update: 'Incident confirmed. Affected accounts are being identified and reset.' },
       { timestamp: '2024-07-20T11:00:00Z', update: 'All affected accounts have had their passwords reset. Monitoring for suspicious activity.' },
     ],
-    workstreamAssignment: {
-      scoping: 'Charlie Brown',
-      triage: 'Alice Johnson',
-      intelligence: 'Frank Miller',
-      impact: 'Bob Williams',
-    },
+    workstreamAssignment: [
+      { id: 'WS-001', name: 'Charlie Brown', role: 'Scoping' },
+      { id: 'WS-002', name: 'Alice Johnson', role: 'Triage' },
+      { id: 'WS-003', name: 'Frank Miller', role: 'Intelligence' },
+      { id: 'WS-004', name: 'Bob Williams', role: 'Impact' },
+    ],
     workstreamTracker: [
       {
         id: 'WT-001',
@@ -123,7 +123,7 @@ export const incidents: Incident[] = [
       { timestamp: '2024-07-19T22:50:00Z', update: 'IP address has been blocked at the firewall level.' },
       { timestamp: '2024-07-20T01:00:00Z', update: 'Investigation complete. No breach detected. Closing incident.' },
     ],
-    workstreamAssignment: { scoping: '', triage: '', intelligence: '', impact: '' },
+    workstreamAssignment: [],
     workstreamTracker: [],
     systems: [],
     hostIndicators: [],
@@ -143,7 +143,7 @@ export const incidents: Incident[] = [
     reportedAt: '2024-07-21T14:00:00Z',
     reporter: { name: 'Diana Prince', email: 'diana.p@example.com' },
     updates: [],
-    workstreamAssignment: { scoping: '', triage: '', intelligence: '', impact: '' },
+    workstreamAssignment: [],
     workstreamTracker: [],
     systems: [],
     hostIndicators: [],
@@ -166,7 +166,7 @@ export const incidents: Incident[] = [
     updates: [
       { timestamp: '2024-07-22T10:05:00Z', update: 'DDoS mitigation service has been activated.' },
     ],
-    workstreamAssignment: { scoping: '', triage: '', intelligence: '', impact: '' },
+    workstreamAssignment: [],
     workstreamTracker: [],
     systems: [],
     hostIndicators: [],
@@ -189,7 +189,7 @@ export const incidents: Incident[] = [
     updates: [
        { timestamp: '2024-07-18T16:30:00Z', update: 'New SSL certificate has been installed and verified.' },
     ],
-    workstreamAssignment: { scoping: '', triage: '', intelligence: '', impact: '' },
+    workstreamAssignment: [],
     workstreamTracker: [],
     systems: [],
     hostIndicators: [],

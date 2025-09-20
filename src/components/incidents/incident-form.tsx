@@ -47,24 +47,30 @@ const FormSchema = z.object({
 
 // Section Components
 function WorkstreamAssignmentForm() {
+    // In a real app, this would use useFieldArray from react-hook-form
     return (
-        <div className="grid grid-cols-2 gap-4">
-            <FormItem>
-                <FormLabel>Scoping</FormLabel>
-                <FormControl><Input placeholder="Assignee..."/></FormControl>
-            </FormItem>
-            <FormItem>
-                <FormLabel>Triage</FormLabel>
-                <FormControl><Input placeholder="Assignee..."/></FormControl>
-            </FormItem>
-            <FormItem>
-                <FormLabel>Intelligence</FormLabel>
-                <FormControl><Input placeholder="Assignee..."/></FormControl>
-            </FormItem>
-            <FormItem>
-                <FormLabel>Impact</FormLabel>
-                <FormControl><Input placeholder="Assignee..."/></FormControl>
-            </FormItem>
+         <div>
+            <div className="flex justify-end mb-2">
+                <Button type="button" variant="outline" size="sm"><PlusCircle className="mr-2"/>Add Responder</Button>
+            </div>
+            <div className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-end gap-2">
+                    <FormItem className="flex-1">
+                        <FormLabel>Responder #1</FormLabel>
+                        <FormControl><Input placeholder="Assignee Name..."/></FormControl>
+                    </FormItem>
+                    <FormItem className="w-1/3">
+                        <FormLabel>Role</FormLabel>
+                         <Select><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent>
+                            <SelectItem value="Scoping">Scoping</SelectItem>
+                            <SelectItem value="Triage">Triage</SelectItem>
+                            <SelectItem value="Intelligence">Intelligence</SelectItem>
+                            <SelectItem value="Impact">Impact</SelectItem>
+                         </SelectContent></Select>
+                    </FormItem>
+                    <Button type="button" variant="ghost" size="icon"><Trash2 className="text-destructive"/></Button>
+                </div>
+            </div>
         </div>
     )
 }
