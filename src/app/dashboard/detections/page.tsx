@@ -3,9 +3,19 @@ import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 
 import DetectionsTable from '@/components/detections/detections-table';
-import { detections } from '@/lib/data';
+import { Detection } from '@/lib/definitions';
 
-export default function DetectionsPage() {
+async function getDetectionsData(): Promise<Detection[]> {
+  // In a real app, you would fetch from an absolute URL.
+  // For this example, we use the in-memory data store via a function import.
+  const { getDetections } = await import('@/lib/data');
+  return getDetections();
+}
+
+
+export default async function DetectionsPage() {
+  const detections = await getDetectionsData();
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">

@@ -1,11 +1,26 @@
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
-
 import IncidentsTable from '@/components/incidents/incidents-table';
-import { incidents } from '@/lib/data';
+import { Incident } from '@/lib/definitions';
 
-export default function IncidentsPage() {
+async function getIncidentsData(): Promise<Incident[]> {
+  // In a real app, this fetch would go to an absolute URL of your deployed backend.
+  // const res = await fetch('http://localhost:9002/api/incidents', { cache: 'no-store' });
+  // if (!res.ok) {
+  //   // This will activate the closest `error.js` Error Boundary
+  //   throw new Error('Failed to fetch data')
+  // }
+  // return res.json();
+  
+  // For this example, we'll import from the data file directly.
+  const { getIncidents } = await import('@/lib/data');
+  return getIncidents();
+}
+
+export default async function IncidentsPage() {
+  const incidents = await getIncidentsData();
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">

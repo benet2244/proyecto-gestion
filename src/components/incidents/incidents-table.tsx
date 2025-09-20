@@ -29,6 +29,7 @@ import { Incident, IncidentStatus } from '@/lib/definitions';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import DeleteButton from '../shared/delete-button';
 
 interface IncidentsTableProps {
   incidents: Incident[];
@@ -114,8 +115,8 @@ export default function IncidentsTable({ incidents, isDashboard = false }: Incid
                   <DropdownMenuItem asChild>
                     <Link href={`/dashboard/incidents/${incident.id}/edit`}>Edit</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive">
-                    Delete
+                  <DropdownMenuItem asChild>
+                    <DeleteButton id={incident.id} type="incident" asDropdownMenuItem />
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

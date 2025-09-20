@@ -1,17 +1,30 @@
 import DetectionsPriorityChart from '@/components/dashboard/detections-priority-chart';
 import StatsCards from '@/components/dashboard/stats-cards';
 import DetectionsTable from '@/components/detections/detections-table';
-import { incidents, detections, getNewsArticles } from '@/lib/data';
 import { sampleThreatLogs } from '@/lib/data/threats';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import NewsCard from '@/components/news/news-card';
-import NewsList from '@/components/news/news-list';
+import { Incident, Detection, NewsArticle } from '@/lib/definitions';
+import { getNewsArticles } from '@/lib/data';
+
+
+// In a real app, this data would be fetched from your API
+async function getDashboardData() {
+  // For now, we simulate fetching from an API. In a real app, you would use fetch()
+  // const incidentsRes = await fetch('http://localhost:9002/api/incidents', { cache: 'no-store' });
+  // const detectionsRes = await fetch('http://localhost:9002/api/detections', { cache: 'no-store' });
+  // const incidents = await incidentsRes.json();
+  // const detections = await detectionsRes.json();
+  const { getIncidents, getDetections } = await import('@/lib/data');
+  const incidents = getIncidents();
+  const detections = getDetections();
+  return { incidents, detections };
+}
 
 export default async function DashboardPage() {
+  const { incidents, detections } = await getDashboardData();
   const recentDetections = [...detections].sort((a, b) => new Date(b.fecha_incidente).getTime() - new Date(a.fecha_incidente).getTime()).slice(0, 5);
-
   const monthlyThreats = sampleThreatLogs.find(log => log.year === 2025 && log.month === 9)?.entries.reduce((sum, entry) => sum + entry.total, 0) || 0;
   
   const allNews = await getNewsArticles();

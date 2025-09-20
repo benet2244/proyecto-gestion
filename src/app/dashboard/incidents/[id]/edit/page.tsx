@@ -9,11 +9,16 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import IncidentForm from '@/components/incidents/incident-form';
-import { incidents } from '@/lib/data';
+import { Incident } from '@/lib/definitions';
+
+async function getIncident(id: string): Promise<Incident | undefined> {
+    const { getIncidentById } = await import('@/lib/data');
+    return getIncidentById(id);
+}
 
 
-export default function EditIncidentPage({ params }: { params: { id: string } }) {
-    const incident = incidents.find(inc => inc.id === params.id);
+export default async function EditIncidentPage({ params }: { params: { id: string } }) {
+    const incident = await getIncident(params.id);
 
     if (!incident) {
         return <div>Incident not found</div>

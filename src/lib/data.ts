@@ -1,7 +1,9 @@
 import { Incident, NewsArticle, Detection } from '@/lib/definitions';
 import Parser from 'rss-parser';
 
-export const incidents: Incident[] = [
+// --- IN-MEMORY DATABASE (REPLACE WITH A REAL DATABASE) ---
+
+export let incidents: Incident[] = [
   {
     id: 'INC-001',
     title: 'Phishing Attack on Finance Department',
@@ -202,7 +204,7 @@ hostIndicators: [],
   }
 ];
 
-export const detections: Detection[] = [
+export let detections: Detection[] = [
     {
         id: 'DET-001',
         tipo_incidente: 'Malware',
@@ -237,6 +239,65 @@ export const detections: Detection[] = [
     }
 ];
 
+// --- DATA ACCESS FUNCTIONS ---
+
+// NOTE: In a real app, these would be async and would fetch from a database.
+// For now, they read from the in-memory array.
+
+export const getIncidents = () => incidents;
+export const getIncidentById = (id: string) => incidents.find(i => i.id === id);
+export const addIncident = (incident: Omit<Incident, 'id'>) => {
+  const newId = `INC-${String(incidents.length + 1).padStart(3, '0')}`;
+  const newIncident: Incident = { ...incident, id: newId, reportedAt: new Date().toISOString() };
+  incidents.push(newIncident);
+  return newIncident;
+}
+export const updateIncident = (id: string, updates: Partial<Incident>) => {
+    const index = incidents.findIndex(i => i.id === id);
+    if (index !== -1) {
+        incidents[index] = { ...incidents[index], ...updates };
+        return incidents[index];
+    }
+    return null;
+}
+export const deleteIncident = (id: string) => {
+    const index = incidents.findIndex(i => i.id === id);
+    if (index !== -1) {
+        incidents.splice(index, 1);
+        return true;
+    }
+    return false;
+}
+
+
+export const getDetections = () => detections;
+export const getDetectionById = (id: string) => detections.find(d => d.id === id);
+export const addDetection = (detection: Omit<Detection, 'id'>) => {
+    const newId = `DET-${String(detections.length + 1).padStart(3, '0')}`;
+    const newDetection: Detection = { ...detection, id: newId };
+    detections.push(newDetection);
+    return newDetection;
+};
+export const updateDetection = (id: string, updates: Partial<Detection>) => {
+    const index = detections.findIndex(d => d.id === id);
+    if (index !== -1) {
+        detections[index] = { ...detections[index], ...updates };
+        return detections[index];
+    }
+    return null;
+};
+export const deleteDetection = (id: string) => {
+    const index = detections.findIndex(d => d.id === id);
+    if (index !== -1) {
+        detections.splice(index, 1);
+        return true;
+    }
+    return false;
+};
+
+
+// --- NEWS SERVICE ---
+
 const parser = new Parser();
 const RSS_URLS = [
     'https://thehackernews.com/feeds/posts/default'
@@ -260,10 +321,20 @@ const assignCategory = (title: string): NewsArticle['category'] => {
     return 'general';
 };
 
+// Cache for news articles
+let newsArticles: NewsArticle[] | null = null;
+let lastFetchTime: number | null = null;
+const CACHE_DURATION = 1000 * 60 * 15; // 15 minutes
+
 export const getNewsArticles = async (): Promise<NewsArticle[]> => {
+    const now = Date.now();
+    if (newsArticles && lastFetchTime && (now - lastFetchTime < CACHE_DURATION)) {
+        return newsArticles;
+    }
+
     try {
         const feed = await parser.parseURL(RSS_URLS[0]);
-        return feed.items.map((item, index) => ({
+        newsArticles = feed.items.map((item, index) => ({
             id: item.guid || `NEWS-${index}`,
             title: item.title || 'No Title',
             source: 'The Hacker News',
@@ -274,9 +345,11 @@ export const getNewsArticles = async (): Promise<NewsArticle[]> => {
             category: assignCategory(item.title || ''),
             content: item.contentSnippet || item.content || 'No content available.',
         }));
+        lastFetchTime = now;
+        return newsArticles;
     } catch (error) {
         console.error("Failed to fetch news articles:", error);
-        // Return an empty array in case of an error to prevent the app from crashing.
-        return [];
+        // Return stale cache if available, otherwise empty array
+        return newsArticles || [];
     }
 };

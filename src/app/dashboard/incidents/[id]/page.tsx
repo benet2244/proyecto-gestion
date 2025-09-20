@@ -8,7 +8,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { incidents } from '@/lib/data';
 import { ArrowLeft, Edit, Trash2, FileUp, Paperclip } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -20,18 +19,33 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ApplicationStatus, Incident } from '@/lib/definitions';
+import DeleteButton from '@/components/shared/delete-button';
+
+async function getIncident(id: string): Promise<Incident | null> {
+  // In a real app, this would be an API call.
+  // const res = await fetch(`http://localhost:9002/api/incidents/${id}`, { cache: 'no-store' });
+  // if (!res.ok) return null;
+  // return res.json();
+
+  // For now, we import directly from our in-memory store
+  const { getIncidentById } = await import('@/lib/data');
+  const incident = getIncidentById(id);
+  if (!incident) return null;
+  return incident;
+}
+
 
 function formatApplicationStatus(status: ApplicationStatus): string {
     return status.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
 
-export default function IncidentDetailPage({
+export default async function IncidentDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const incident = incidents.find((inc) => inc.id === params.id);
+  const incident = await getIncident(params.id);
 
   if (!incident) {
     return <p>Incident not found.</p>;
@@ -69,10 +83,7 @@ export default function IncidentDetailPage({
                 Edit
              </Link>
           </Button>
-          <Button variant="destructive" size="sm">
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
+          <DeleteButton id={incident.id} type="incident" />
         </div>
       </div>
       <div className="grid gap-6 md:grid-cols-3">

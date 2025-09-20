@@ -23,24 +23,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { Detection } from '@/lib/definitions';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import DeleteButton from '@/components/shared/delete-button';
 import React from 'react';
 
 
@@ -59,22 +48,11 @@ const threatLevelVariant: { [key: string]: 'default' | 'secondary' | 'destructiv
 
 export default function DetectionsTable({ detections, isDashboard = false }: DetectionsTableProps) {
   const router = useRouter();
-  const { toast } = useToast();
 
   const handleViewDetails = (id: string) => {
     router.push(`/dashboard/detections/${id}`);
   };
 
-  const handleDelete = (id: string) => {
-    // In a real app, you'd call an API to delete the detection.
-    // Here we just show a toast.
-    console.log("Deleting detection", id);
-    toast({
-        title: "Detection Deleted",
-        description: `Detection ${id} has been successfully deleted.`,
-    });
-    // You might want to refetch or update the local state here.
-  }
 
   const TableContent = () => (
      <Table>
@@ -103,7 +81,6 @@ export default function DetectionsTable({ detections, isDashboard = false }: Det
             {!isDashboard && <TableCell>{detection.dependencia}</TableCell>}
             {!isDashboard && <TableCell>{detection.tipo_incidente}</TableCell>}
             <TableCell>
-              <AlertDialog>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -118,32 +95,11 @@ export default function DetectionsTable({ detections, isDashboard = false }: Det
                     <DropdownMenuItem asChild>
                       <Link href={`/dashboard/detections/${detection.id}/edit`}>Edit</Link>
                     </DropdownMenuItem>
-                    <AlertDialogTrigger asChild>
-                        <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                            Delete
-                        </DropdownMenuItem>
-                    </AlertDialogTrigger>
+                    <DropdownMenuItem asChild>
+                       <DeleteButton id={detection.id} type="detection" asDropdownMenuItem />
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the detection
-                            <span className="font-bold"> {detection.id}</span>.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            className={cn(buttonVariants({ variant: "destructive" }))}
-                            onClick={() => handleDelete(detection.id)}
-                        >
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
             </TableCell>
           </TableRow>
         ))}

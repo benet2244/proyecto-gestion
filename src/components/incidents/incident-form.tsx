@@ -3,7 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useFieldArray, Control } from "react-hook-form"
 import { z } from "zod"
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -130,10 +132,11 @@ type FormValues = z.infer<typeof FormSchema>;
 interface SectionProps<T> {
   control: Control<FormValues>;
   incident?: Incident;
+  isSubmitting: boolean;
 }
 
 // Section Components
-function WorkstreamAssignmentForm({ control }: SectionProps<any>) {
+function WorkstreamAssignmentForm({ control, isSubmitting }: SectionProps<any>) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 p-4 border rounded-lg">
       <FormField
@@ -143,7 +146,7 @@ function WorkstreamAssignmentForm({ control }: SectionProps<any>) {
           <FormItem>
             <FormLabel>Scoping</FormLabel>
             <FormControl>
-              <Input placeholder="Assignee Name..." {...field} />
+              <Input placeholder="Assignee Name..." {...field} disabled={isSubmitting}/>
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -156,7 +159,7 @@ function WorkstreamAssignmentForm({ control }: SectionProps<any>) {
           <FormItem>
             <FormLabel>Triage</FormLabel>
             <FormControl>
-              <Input placeholder="Assignee Name..." {...field} />
+              <Input placeholder="Assignee Name..." {...field} disabled={isSubmitting}/>
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -169,7 +172,7 @@ function WorkstreamAssignmentForm({ control }: SectionProps<any>) {
           <FormItem>
             <FormLabel>Intelligence</FormLabel>
             <FormControl>
-              <Input placeholder="Assignee Name..." {...field} />
+              <Input placeholder="Assignee Name..." {...field} disabled={isSubmitting}/>
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -182,7 +185,7 @@ function WorkstreamAssignmentForm({ control }: SectionProps<any>) {
           <FormItem>
             <FormLabel>Impact</FormLabel>
             <FormControl>
-              <Input placeholder="Assignee Name..." {...field} />
+              <Input placeholder="Assignee Name..." {...field} disabled={isSubmitting}/>
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -193,7 +196,7 @@ function WorkstreamAssignmentForm({ control }: SectionProps<any>) {
 }
 
 
-function WorkstreamTrackerForm({ control }: SectionProps<any>) {
+function WorkstreamTrackerForm({ control, isSubmitting }: SectionProps<any>) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: "workstreamTracker",
@@ -201,19 +204,19 @@ function WorkstreamTrackerForm({ control }: SectionProps<any>) {
     return (
         <div>
             <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ task: "", assignedTo: "", priority: "Media", status: "New" })}><PlusCircle className="mr-2"/>Add Task</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ task: "", assignedTo: "", priority: "Media", status: "New" })} disabled={isSubmitting}><PlusCircle className="mr-2"/>Add Task</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
                  {fields.map((field, index) => (
                     <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
-                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)} disabled={isSubmitting}><Trash2 className="text-destructive"/></Button>
                         <FormField
                             control={control}
                             name={`workstreamTracker.${index}.task`}
                             render={({ field }) => (
                                 <FormItem className="flex-1">
                                     <FormLabel>Task</FormLabel>
-                                    <FormControl><Input placeholder="Describe the task..." {...field} /></FormControl>
+                                    <FormControl><Input placeholder="Describe the task..." {...field} disabled={isSubmitting} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -223,7 +226,7 @@ function WorkstreamTrackerForm({ control }: SectionProps<any>) {
                                 control={control}
                                 name={`workstreamTracker.${index}.assignedTo`}
                                 render={({ field }) => (
-                                    <FormItem><FormLabel>Assigned To</FormLabel><FormControl><Input placeholder="Assignee..." {...field}/></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Assigned To</FormLabel><FormControl><Input placeholder="Assignee..." {...field} disabled={isSubmitting}/></FormControl><FormMessage /></FormItem>
                                 )}
                             />
                              <FormField
@@ -232,7 +235,7 @@ function WorkstreamTrackerForm({ control }: SectionProps<any>) {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Priority</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Baja">Baja</SelectItem><SelectItem value="Media">Media</SelectItem><SelectItem value="Alta">Alta</SelectItem></SelectContent></Select>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Baja">Baja</SelectItem><SelectItem value="Media">Media</SelectItem><SelectItem value="Alta">Alta</SelectItem></SelectContent></Select>
                                     </FormItem>
                                 )}
                             />
@@ -242,7 +245,7 @@ function WorkstreamTrackerForm({ control }: SectionProps<any>) {
                                 render={({ field }) => (
                                      <FormItem>
                                         <FormLabel>Status</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="New">New</SelectItem><SelectItem value="In Progress">In Progress</SelectItem><SelectItem value="Complete">Complete</SelectItem></SelectContent></Select>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="New">New</SelectItem><SelectItem value="In Progress">In Progress</SelectItem><SelectItem value="Complete">Complete</SelectItem></SelectContent></Select>
                                     </FormItem>
                                 )}
                             />
@@ -255,33 +258,33 @@ function WorkstreamTrackerForm({ control }: SectionProps<any>) {
     )
 }
 
-function SystemForm({ control }: SectionProps<any>) {
+function SystemForm({ control, isSubmitting }: SectionProps<any>) {
     const { fields, append, remove } = useFieldArray({ control, name: "systems" });
      return (
         <div>
             <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ hostname: "", ipAddress: "", systemOperating: "", notes: "" })}><PlusCircle className="mr-2"/>Add System</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ hostname: "", ipAddress: "", systemOperating: "", notes: "" })} disabled={isSubmitting}><PlusCircle className="mr-2"/>Add System</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
                  {fields.map((field, index) => (
                     <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
-                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)} disabled={isSubmitting}><Trash2 className="text-destructive"/></Button>
                         <FormField
                             control={control}
                             name={`systems.${index}.hostname`}
                             render={({ field }) => (
                                 <FormItem className="flex-1">
                                     <FormLabel>Hostname</FormLabel>
-                                    <FormControl><Input placeholder="e.g., WEB-SRV-01" {...field} /></FormControl>
+                                    <FormControl><Input placeholder="e.g., WEB-SRV-01" {...field} disabled={isSubmitting} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
                         <div className="grid grid-cols-2 gap-4">
-                             <FormField control={control} name={`systems.${index}.ipAddress`} render={({ field }) => (<FormItem><FormLabel>IP Address</FormLabel><FormControl><Input placeholder="e.g., 192.168.1.10" {...field} /></FormControl></FormItem>)} />
-                             <FormField control={control} name={`systems.${index}.systemOperating`} render={({ field }) => (<FormItem><FormLabel>Operating System</FormLabel><FormControl><Input placeholder="e.g., Windows Server 2022" {...field} /></FormControl></FormItem>)} />
+                             <FormField control={control} name={`systems.${index}.ipAddress`} render={({ field }) => (<FormItem><FormLabel>IP Address</FormLabel><FormControl><Input placeholder="e.g., 192.168.1.10" {...field} disabled={isSubmitting} /></FormControl></FormItem>)} />
+                             <FormField control={control} name={`systems.${index}.systemOperating`} render={({ field }) => (<FormItem><FormLabel>Operating System</FormLabel><FormControl><Input placeholder="e.g., Windows Server 2022" {...field} disabled={isSubmitting} /></FormControl></FormItem>)} />
                         </div>
-                         <FormField control={control} name={`systems.${index}.notes`} render={({ field }) => (<FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea placeholder="System notes..." {...field}/></FormControl></FormItem>)} />
+                         <FormField control={control} name={`systems.${index}.notes`} render={({ field }) => (<FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea placeholder="System notes..." {...field} disabled={isSubmitting}/></FormControl></FormItem>)} />
                     </div>
                 ))}
                  {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No systems added yet.</p>}
@@ -290,30 +293,30 @@ function SystemForm({ control }: SectionProps<any>) {
     )
 }
 
-function HostIndicatorsForm({ control }: SectionProps<any>) {
+function HostIndicatorsForm({ control, isSubmitting }: SectionProps<any>) {
      const { fields, append, remove } = useFieldArray({ control, name: "hostIndicators" });
     return (
         <div>
              <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ fullPath: "", md5: "", sha1: "", sha256: "", notes: ""})}><PlusCircle className="mr-2"/>Add Indicator</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ fullPath: "", md5: "", sha1: "", sha256: "", notes: ""})} disabled={isSubmitting}><PlusCircle className="mr-2"/>Add Indicator</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
                 {fields.map((field, index) => (
                     <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
-                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)} disabled={isSubmitting}><Trash2 className="text-destructive"/></Button>
                         <FormField control={control} name={`hostIndicators.${index}.fullPath`} render={({ field }) => (
                             <FormItem className="flex-1">
                                 <FormLabel>Full Path & Name</FormLabel>
-                                <FormControl><Input placeholder="e.g., C:\temp\malicious.exe" {...field} /></FormControl>
+                                <FormControl><Input placeholder="e.g., C:\temp\malicious.exe" {...field} disabled={isSubmitting} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}/>
                         <div className="grid grid-cols-3 gap-4">
-                             <FormField control={control} name={`hostIndicators.${index}.md5`} render={({ field }) => (<FormItem><FormLabel>MD5</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                             <FormField control={control} name={`hostIndicators.${index}.sha1`} render={({ field }) => (<FormItem><FormLabel>SHA1</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                             <FormField control={control} name={`hostIndicators.${index}.sha256`} render={({ field }) => (<FormItem><FormLabel>SHA256</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                             <FormField control={control} name={`hostIndicators.${index}.md5`} render={({ field }) => (<FormItem><FormLabel>MD5</FormLabel><FormControl><Input {...field} disabled={isSubmitting} /></FormControl></FormItem>)} />
+                             <FormField control={control} name={`hostIndicators.${index}.sha1`} render={({ field }) => (<FormItem><FormLabel>SHA1</FormLabel><FormControl><Input {...field} disabled={isSubmitting} /></FormControl></FormItem>)} />
+                             <FormField control={control} name={`hostIndicators.${index}.sha256`} render={({ field }) => (<FormItem><FormLabel>SHA256</FormLabel><FormControl><Input {...field} disabled={isSubmitting} /></FormControl></FormItem>)} />
                         </div>
-                        <FormField control={control} name={`hostIndicators.${index}.notes`} render={({ field }) => (<FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea placeholder="Indicator notes..." {...field} /></FormControl></FormItem>)} />
+                        <FormField control={control} name={`hostIndicators.${index}.notes`} render={({ field }) => (<FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea placeholder="Indicator notes..." {...field} disabled={isSubmitting} /></FormControl></FormItem>)} />
                     </div>
                 ))}
                  {fields.length === 0 && <p className="text-sm text-muted-foreground text-center">No host indicators added yet.</p>}
@@ -322,21 +325,21 @@ function HostIndicatorsForm({ control }: SectionProps<any>) {
     )
 }
 
-function NetworkIndicatorsForm({ control }: SectionProps<any>) {
+function NetworkIndicatorsForm({ control, isSubmitting }: SectionProps<any>) {
     const { fields, append, remove } = useFieldArray({ control, name: "networkIndicators" });
     return (
         <div>
              <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ indicator: "", status: "Sospechoso", source: ""})}><PlusCircle className="mr-2"/>Add Indicator</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ indicator: "", status: "Sospechoso", source: ""})} disabled={isSubmitting}><PlusCircle className="mr-2"/>Add Indicator</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
                  {fields.map((field, index) => (
                     <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
-                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)} disabled={isSubmitting}><Trash2 className="text-destructive"/></Button>
                         <FormField control={control} name={`networkIndicators.${index}.indicator`} render={({ field }) => (
                             <FormItem className="flex-1">
                                 <FormLabel>Indicator (URL, IP, Domain)</FormLabel>
-                                <FormControl><Input placeholder="e.g., http://malicious.com/payload.zip" {...field} /></FormControl>
+                                <FormControl><Input placeholder="e.g., http://malicious.com/payload.zip" {...field} disabled={isSubmitting} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}/>
@@ -344,13 +347,13 @@ function NetworkIndicatorsForm({ control }: SectionProps<any>) {
                             <FormField control={control} name={`networkIndicators.${index}.status`} render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Status</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Sospechoso">Sospechoso</SelectItem><SelectItem value="Confirmado">Confirmado</SelectItem></SelectContent></Select>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Sospechoso">Sospechoso</SelectItem><SelectItem value="Confirmado">Confirmado</SelectItem></SelectContent></Select>
                                 </FormItem>
                             )}/>
                             <FormField control={control} name={`networkIndicators.${index}.source`} render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Source</FormLabel>
-                                    <FormControl><Input placeholder="e.g., Firewall Logs" {...field} /></FormControl>
+                                    <FormControl><Input placeholder="e.g., Firewall Logs" {...field} disabled={isSubmitting} /></FormControl>
                                 </FormItem>
                             )}/>
                         </div>
@@ -362,61 +365,61 @@ function NetworkIndicatorsForm({ control }: SectionProps<any>) {
     )
 }
 
-function IntelligenceForm({ control }: SectionProps<any>) {
+function IntelligenceForm({ control, isSubmitting }: SectionProps<any>) {
     return (
         <div className="grid grid-cols-2 gap-6">
             <div className="space-y-4">
                  <FormField control={control} name="intelligence.status" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Intel Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Green">Green</SelectItem><SelectItem value="Yellow">Yellow</SelectItem><SelectItem value="Red">Red</SelectItem></SelectContent></Select>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Green">Green</SelectItem><SelectItem value="Yellow">Yellow</SelectItem><SelectItem value="Red">Red</SelectItem></SelectContent></Select>
                     </FormItem>
                  )}/>
                  <FormField control={control} name="intelligence.rfi" render={({ field }) => (
                     <FormItem>
                         <FormLabel>RFI Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Unanswered">Unanswered</SelectItem><SelectItem value="Awaiting Response">Awaiting Response</SelectItem><SelectItem value="Answered">Answered</SelectItem></SelectContent></Select>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Unanswered">Unanswered</SelectItem><SelectItem value="Awaiting Response">Awaiting Response</SelectItem><SelectItem value="Answered">Answered</SelectItem></SelectContent></Select>
                     </FormItem>
                 )}/>
                  <FormField control={control} name="intelligence.sourceFile" render={({ field }) => (
                      <FormItem>
                         <FormLabel>Source File</FormLabel>
-                        <FormControl><Input type="file" onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)} /></FormControl>
+                        <FormControl><Input type="file" onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)} disabled={isSubmitting} /></FormControl>
                     </FormItem>
                  )} />
             </div>
              <FormField control={control} name="intelligence.response" render={({ field }) => (
                  <FormItem>
                     <FormLabel>Response</FormLabel>
-                    <FormControl><Textarea placeholder="Provide intelligence response..." className="h-full resize-none" {...field}/></FormControl>
+                    <FormControl><Textarea placeholder="Provide intelligence response..." className="h-full resize-none" {...field} disabled={isSubmitting}/></FormControl>
                 </FormItem>
              )}/>
         </div>
     )
 }
 
-function EvidenceTrackerForm({ control }: SectionProps<any>) {
+function EvidenceTrackerForm({ control, isSubmitting }: SectionProps<any>) {
     const { fields, append, remove } = useFieldArray({ control, name: "evidenceTracker" });
     return (
         <div>
             <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ evidenceType: "", evidenceSource: "", dateReceived: new Date().toISOString().split('T')[0], evidenceLocation: ""})}><PlusCircle className="mr-2"/>Add Evidence</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ evidenceType: "", evidenceSource: "", dateReceived: new Date().toISOString().split('T')[0], evidenceLocation: ""})} disabled={isSubmitting}><PlusCircle className="mr-2"/>Add Evidence</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
                 {fields.map((field, index) => (
                     <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
-                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)} disabled={isSubmitting}><Trash2 className="text-destructive"/></Button>
                         <FormField control={control} name={`evidenceTracker.${index}.evidenceType`} render={({ field }) => (
                             <FormItem className="flex-1">
                                 <FormLabel>Evidence Type</FormLabel>
-                                <FormControl><Input placeholder="e.g., Log File, Screenshot" {...field} /></FormControl>
+                                <FormControl><Input placeholder="e.g., Log File, Screenshot" {...field} disabled={isSubmitting} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}/>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                             <FormField control={control} name={`evidenceTracker.${index}.evidenceSource`} render={({ field }) => (<FormItem><FormLabel>Source</FormLabel><FormControl><Input placeholder="e.g., SIEM" {...field}/></FormControl></FormItem>)} />
-                             <FormField control={control} name={`evidenceTracker.${index}.dateReceived`} render={({ field }) => (<FormItem><FormLabel>Date Received</FormLabel><FormControl><Input type="date" {...field}/></FormControl></FormItem>)} />
-                             <FormField control={control} name={`evidenceTracker.${index}.evidenceLocation`} render={({ field }) => (<FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., Case Folder" {...field}/></FormControl></FormItem>)} />
+                             <FormField control={control} name={`evidenceTracker.${index}.evidenceSource`} render={({ field }) => (<FormItem><FormLabel>Source</FormLabel><FormControl><Input placeholder="e.g., SIEM" {...field} disabled={isSubmitting}/></FormControl></FormItem>)} />
+                             <FormField control={control} name={`evidenceTracker.${index}.dateReceived`} render={({ field }) => (<FormItem><FormLabel>Date Received</FormLabel><FormControl><Input type="date" {...field} disabled={isSubmitting}/></FormControl></FormItem>)} />
+                             <FormField control={control} name={`evidenceTracker.${index}.evidenceLocation`} render={({ field }) => (<FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., Case Folder" {...field} disabled={isSubmitting}/></FormControl></FormItem>)} />
                         </div>
                     </div>
                 ))}
@@ -426,28 +429,28 @@ function EvidenceTrackerForm({ control }: SectionProps<any>) {
     )
 }
 
-function ApplicationForm({ control }: SectionProps<any>) {
+function ApplicationForm({ control, isSubmitting }: SectionProps<any>) {
      const { fields, append, remove } = useFieldArray({ control, name: "applications" });
     return (
         <div>
             <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ submittedBy: "", status: "compromised-malware"})}><PlusCircle className="mr-2"/>Add Application</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ submittedBy: "", status: "compromised-malware"})} disabled={isSubmitting}><PlusCircle className="mr-2"/>Add Application</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
                 {fields.map((field, index) => (
                     <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
-                         <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                         <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)} disabled={isSubmitting}><Trash2 className="text-destructive"/></Button>
                         <FormField control={control} name={`applications.${index}.submittedBy`} render={({ field }) => (
                              <FormItem className="flex-1">
                                 <FormLabel>Submitted By</FormLabel>
-                                <FormControl><Input placeholder="Analyst Name" {...field}/></FormControl>
+                                <FormControl><Input placeholder="Analyst Name" {...field} disabled={isSubmitting}/></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}/>
                         <FormField control={control} name={`applications.${index}.status`} render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Status</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
                                     <SelectContent>
                                         {ApplicationStatusSchema.options.map(status => (
                                             <SelectItem key={status} value={status}>{status.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
@@ -464,27 +467,27 @@ function ApplicationForm({ control }: SectionProps<any>) {
     )
 }
 
-function ForensicForm({ control }: SectionProps<any>) {
+function ForensicForm({ control, isSubmitting }: SectionProps<any>) {
      const { fields, append, remove } = useFieldArray({ control, name: "forensics" });
     return (
         <div>
              <div className="flex justify-end mb-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ highFidelityForensicKeywords: "", note: ""})}><PlusCircle className="mr-2"/>Add Entry</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ highFidelityForensicKeywords: "", note: ""})} disabled={isSubmitting}><PlusCircle className="mr-2"/>Add Entry</Button>
             </div>
             <div className="border rounded-lg p-4 space-y-4">
                 {fields.map((field, index) => (
                     <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
-                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}><Trash2 className="text-destructive"/></Button>
+                        <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)} disabled={isSubmitting}><Trash2 className="text-destructive"/></Button>
                         <FormField control={control} name={`forensics.${index}.highFidelityForensicKeywords`} render={({ field }) => (
                             <FormItem className="flex-1">
                                 <FormLabel>High Fidelity Forensic Keywords</FormLabel>
-                                <FormControl><Input placeholder="Keywords..." {...field}/></FormControl>
+                                <FormControl><Input placeholder="Keywords..." {...field} disabled={isSubmitting}/></FormControl>
                             </FormItem>
                         )}/>
                         <FormField control={control} name={`forensics.${index}.note`} render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Note</FormLabel>
-                                <FormControl><Textarea placeholder="Forensic notes..." {...field}/></FormControl>
+                                <FormControl><Textarea placeholder="Forensic notes..." {...field} disabled={isSubmitting}/></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}/>
@@ -496,25 +499,25 @@ function ForensicForm({ control }: SectionProps<any>) {
     )
 }
 
-function AuthorizationForm({ control }: SectionProps<any>) {
+function AuthorizationForm({ control, isSubmitting }: SectionProps<any>) {
     return (
         <div className="grid grid-cols-3 gap-4">
             <FormField control={control} name="authorization.authorizerName" render={({ field }) => (
                 <FormItem>
                     <FormLabel>Authorizer Name</FormLabel>
-                    <FormControl><Input placeholder="e.g., John Doe" {...field}/></FormControl>
+                    <FormControl><Input placeholder="e.g., John Doe" {...field} disabled={isSubmitting}/></FormControl>
                 </FormItem>
             )}/>
              <FormField control={control} name="authorization.authorizerRank" render={({ field }) => (
                  <FormItem>
                     <FormLabel>Authorizer Rank/Title</FormLabel>
-                    <FormControl><Input placeholder="e.g., CISO" {...field}/></FormControl>
+                    <FormControl><Input placeholder="e.g., CISO" {...field} disabled={isSubmitting}/></FormControl>
                 </FormItem>
              )}/>
              <FormField control={control} name="authorization.catalog" render={({ field }) => (
                  <FormItem>
                     <FormLabel>Catalog/Reference</FormLabel>
-                    <FormControl><Input placeholder="e.g., Legal Hold #123" {...field}/></FormControl>
+                    <FormControl><Input placeholder="e.g., Legal Hold #123" {...field} disabled={isSubmitting}/></FormControl>
                 </FormItem>
              )}/>
         </div>
@@ -528,6 +531,8 @@ interface IncidentFormProps {
 }
 
 export default function IncidentForm({ incident }: IncidentFormProps) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isEditMode = !!incident;
 
   const form = useForm<FormValues>({
@@ -550,15 +555,52 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
     }
   })
 
-  function onSubmit(data: FormValues) {
-    toast({
-      title: incident ? "Incident Updated" : "Incident Created",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
+  async function onSubmit(data: FormValues) {
+    setIsSubmitting(true);
+    const endpoint = isEditMode ? `/api/incidents/${incident?.id}` : '/api/incidents';
+    const method = isEditMode ? 'PUT' : 'POST';
+
+    // TODO: Handle file uploads correctly. This is a placeholder.
+    // For `intelligence.sourceFile`, you'll need a multipart/form-data request
+    // or upload the file to a storage service and save the URL.
+    if (data.intelligence?.sourceFile) {
+        console.log("File to upload:", data.intelligence.sourceFile.name);
+        // This is where you would handle the file upload logic.
+        // For now, we'll just remove it from the data sent to the API.
+        data.intelligence.sourceFile = data.intelligence.sourceFile.name;
+    }
+
+
+    try {
+        const response = await fetch(endpoint, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        toast({
+            title: isEditMode ? "Incident Updated" : "Incident Created",
+            description: `Incident ${result.id} has been saved successfully.`,
+        });
+
+        router.push(`/dashboard/incidents/${result.id}`);
+        router.refresh();
+
+    } catch (error) {
+        console.error("Failed to submit incident:", error);
+        toast({
+            title: "Error",
+            description: "Failed to save the incident. Please try again.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   return (
@@ -572,7 +614,7 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Phishing Attack on Finance Department" {...field} disabled={isEditMode} />
+                <Input placeholder="e.g., Phishing Attack on Finance Department" {...field} disabled={isEditMode || isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -589,7 +631,7 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
                   placeholder="Provide a detailed description of the incident..."
                   className="resize-none"
                   {...field}
-                  disabled={isEditMode}
+                  disabled={isEditMode || isSubmitting}
                 />
               </FormControl>
               <FormMessage />
@@ -603,7 +645,7 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>Severity</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                     <FormControl>
                     <SelectTrigger>
                         <SelectValue placeholder="Select a severity level" />
@@ -626,7 +668,7 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                     <FormControl>
                     <SelectTrigger>
                         <SelectValue placeholder="Select an incident status" />
@@ -650,76 +692,79 @@ export default function IncidentForm({ incident }: IncidentFormProps) {
                 <AccordionTrigger>
                     <div className="font-headline text-lg">Workstream Assignment</div>
                 </AccordionTrigger>
-                <AccordionContent><WorkstreamAssignmentForm control={form.control} incident={incident} /></AccordionContent>
+                <AccordionContent><WorkstreamAssignmentForm control={form.control} incident={incident} isSubmitting={isSubmitting} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="workstream-tracker" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger>
                      <div className="font-headline text-lg">Workstream Tracker</div>
                 </AccordionTrigger>
-                <AccordionContent><WorkstreamTrackerForm control={form.control} incident={incident} /></AccordionContent>
+                <AccordionContent><WorkstreamTrackerForm control={form.control} incident={incident} isSubmitting={isSubmitting} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="systems" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger>
                      <div className="font-headline text-lg">Systems</div>
                 </AccordionTrigger>
-                <AccordionContent><SystemForm control={form.control} /></AccordionContent>
+                <AccordionContent><SystemForm control={form.control} incident={incident} isSubmitting={isSubmitting} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="host-indicators" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger>
                      <div className="font-headline text-lg">Host Indicators</div>
                 </AccordionTrigger>
-                <AccordionContent><HostIndicatorsForm control={form.control} /></AccordionContent>
+                <AccordionContent><HostIndicatorsForm control={form.control} incident={incident} isSubmitting={isSubmitting} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="network-indicators" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger>
                      <div className="font-headline text-lg">Network Indicators</div>
                 </AccordionTrigger>
-                <AccordionContent><NetworkIndicatorsForm control={form.control} /></AccordionContent>
+                <AccordionContent><NetworkIndicatorsForm control={form.control} incident={incident} isSubmitting={isSubmitting} /></AccordionContent>
             </AccordionItem>
 
              <AccordionItem value="intelligence" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger>
                      <div className="font-headline text-lg">Intelligence</div>
                 </AccordionTrigger>
-                <AccordionContent><IntelligenceForm control={form.control} /></AccordionContent>
+                <AccordionContent><IntelligenceForm control={form.control} incident={incident} isSubmitting={isSubmitting} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="evidence-tracker" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger>
                      <div className="font-headline text-lg">Evidence Tracker</div>
                 </AccordionTrigger>
-                <AccordionContent><EvidenceTrackerForm control={form.control} /></AccordionContent>
+                <AccordionContent><EvidenceTrackerForm control={form.control} incident={incident} isSubmitting={isSubmitting} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="application" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger>
                      <div className="font-headline text-lg">Application</div>
                 </AccordionTrigger>
-                <AccordionContent><ApplicationForm control={form.control} /></AccordionContent>
+                <AccordionContent><ApplicationForm control={form.control} incident={incident} isSubmitting={isSubmitting} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="forensic" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger>
                      <div className="font-headline text-lg">Forensic</div>
                 </AccordionTrigger>
-                <AccordionContent><ForensicForm control={form.control} /></AccordionContent>
+                <AccordionContent><ForensicForm control={form.control} incident={incident} isSubmitting={isSubmitting} /></AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="authorization" className="border rounded-lg px-4 bg-card">
                 <AccordionTrigger>
                      <div className="font-headline text-lg">Authorization</div>
                 </AccordionTrigger>
-                <AccordionContent><AuthorizationForm control={form.control} /></AccordionContent>
+                <AccordionContent><AuthorizationForm control={form.control} incident={incident} isSubmitting={isSubmitting} /></AccordionContent>
             </AccordionItem>
 
         </Accordion>
 
         <div className="flex justify-end">
-            <Button type="submit">{incident ? "Update Incident" : "Create Incident"}</Button>
+            <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {incident ? "Update Incident" : "Create Incident"}
+            </Button>
         </div>
       </form>
     </Form>

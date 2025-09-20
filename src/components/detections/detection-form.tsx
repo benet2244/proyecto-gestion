@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useState } from "react"
 import { CalendarIcon, Loader2 } from "lucide-react"
+import { useRouter } from 'next/navigation'
 
 import { Button } from "@/components/ui/button"
 import {
@@ -60,7 +61,9 @@ interface DetectionFormProps {
 }
 
 export default function DetectionForm({ detection, isEditMode = false }: DetectionFormProps) {
+  const router = useRouter();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -119,16 +122,46 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
     }
   }
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    toast({
-      title: detection ? "Detección Actualizada" : "Detección Creada",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
+ async function onSubmit(data: z.infer<typeof FormSchema>) {
+    setIsSubmitting(true);
+    const endpoint = isEditMode ? `/api/detections/${detection?.id}` : '/api/detections';
+    const method = isEditMode ? 'PUT' : 'POST';
+
+    try {
+      const response = await fetch(endpoint, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      toast({
+        title: detection ? "Detección Actualizada" : "Detección Creada",
+        description: `La detección ${result.id} ha sido guardada.`,
+      });
+
+      router.push('/dashboard/detections');
+      router.refresh();
+
+    } catch (error) {
+      console.error("Failed to submit form:", error);
+      toast({
+        title: "Error al guardar",
+        description: "Ocurrió un error al guardar la detección. Por favor, intente de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
+
 
   return (
     <Form {...form}>
@@ -141,7 +174,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                 <FormItem>
                 <FormLabel>Tipo de Incidente</FormLabel>
                 <FormControl>
-                    <Input placeholder="e.g., Malware, Phishing" {...field} disabled={isEditMode}/>
+                    <Input placeholder="e.g., Malware, Phishing" {...field} disabled={isEditMode || isSubmitting}/>
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -153,7 +186,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>Prioridad</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditMode}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditMode || isSubmitting}>
                     <FormControl>
                     <SelectTrigger><SelectValue placeholder="Seleccione una prioridad" /></SelectTrigger>
                     </FormControl>
@@ -186,7 +219,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                                 "pl-3 text-left font-normal",
                                 !field.value && "text-muted-foreground"
                             )}
-                            disabled={isEditMode}
+                            disabled={isEditMode || isSubmitting}
                             >
                             {field.value ? (
                                 format(field.value, "PPP")
@@ -202,7 +235,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled
+                            disabled={isEditMode || isSubmitting}
                             initialFocus
                         />
                         </PopoverContent>
@@ -218,7 +251,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                     <FormItem>
                     <FormLabel>Responsable</FormLabel>
                     <FormControl>
-                        <Input placeholder="Nombre del analista" {...field} disabled={isEditMode}/>
+                        <Input placeholder="Nombre del analista" {...field} disabled={isEditMode || isSubmitting}/>
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -234,7 +267,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                     <FormItem>
                     <FormLabel>Equipo Afectado</FormLabel>
                     <FormControl>
-                        <Input placeholder="e.g., LAPTOP-MKT-05" {...field} disabled={isEditMode}/>
+                        <Input placeholder="e.g., LAPTOP-MKT-05" {...field} disabled={isEditMode || isSubmitting}/>
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -247,7 +280,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                     <FormItem>
                     <FormLabel>Dirección MAC</FormLabel>
                     <FormControl>
-                        <Input placeholder="00:1B:44:11:3A:B7" {...field} />
+                        <Input placeholder="00:1B:44:11:3A:B7" {...field} disabled={isSubmitting} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -263,7 +296,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                     <FormItem>
                     <FormLabel>Dependencia</FormLabel>
                     <FormControl>
-                        <Input placeholder="e.g., Marketing, Finanzas" {...field} disabled={isEditMode}/>
+                        <Input placeholder="e.g., Marketing, Finanzas" {...field} disabled={isEditMode || isSubmitting}/>
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -275,7 +308,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Estado del Equipo</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                         <FormControl>
                         <SelectTrigger><SelectValue placeholder="Seleccione un estado" /></SelectTrigger>
                         </FormControl>
@@ -302,6 +335,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                   placeholder="Describa las acciones de contención, erradicación y recuperación..."
                   className="resize-none"
                   {...field}
+                  disabled={isSubmitting}
                 />
               </FormControl>
               <FormMessage />
@@ -318,9 +352,9 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                     <FormLabel>Hash (MD5, SHA1, SHA256)</FormLabel>
                     <div className="flex gap-2">
                         <FormControl>
-                            <Input placeholder="Hash del archivo sospechoso..." {...field} disabled={isEditMode}/>
+                            <Input placeholder="Hash del archivo sospechoso..." {...field} disabled={isEditMode || isSubmitting}/>
                         </FormControl>
-                        <Button type="button" onClick={handleAnalyzeHash} disabled={isAnalyzing || isEditMode}>
+                        <Button type="button" onClick={handleAnalyzeHash} disabled={isAnalyzing || isEditMode || isSubmitting}>
                             {isAnalyzing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Analizar
                         </Button>
@@ -351,6 +385,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
                   placeholder="Cualquier otra información relevante..."
                   className="resize-none"
                   {...field}
+                  disabled={isSubmitting}
                 />
               </FormControl>
               <FormMessage />
@@ -364,7 +399,7 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
         render={({ field }) => (
             <FormItem>
             <FormLabel>Estado</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                 <FormControl>
                 <SelectTrigger><SelectValue placeholder="Seleccione un estado" /></SelectTrigger>
                 </FormControl>
@@ -380,7 +415,10 @@ export default function DetectionForm({ detection, isEditMode = false }: Detecti
         />
         
         <div className="flex justify-end">
-            <Button type="submit">{detection ? "Update Detection" : "Create Detection"}</Button>
+            <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {detection ? "Update Detection" : "Create Detection"}
+            </Button>
         </div>
       </form>
     </Form>

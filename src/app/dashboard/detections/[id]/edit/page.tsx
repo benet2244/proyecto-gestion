@@ -9,11 +9,17 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import DetectionForm from '@/components/detections/detection-form';
-import { detections } from '@/lib/data';
+import { Detection } from '@/lib/definitions';
 
 
-export default function EditDetectionPage({ params }: { params: { id: string } }) {
-    const detection = detections.find(det => det.id === params.id);
+async function getDetection(id: string): Promise<Detection | undefined> {
+    const { getDetectionById } = await import('@/lib/data');
+    return getDetectionById(id);
+}
+
+
+export default async function EditDetectionPage({ params }: { params: { id: string } }) {
+    const detection = await getDetection(params.id);
 
     if (!detection) {
         return <div>Detection not found</div>

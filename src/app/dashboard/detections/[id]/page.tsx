@@ -8,10 +8,18 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { detections } from '@/lib/data';
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { Detection } from '@/lib/definitions';
+import DeleteButton from '@/components/shared/delete-button';
+
+async function getDetection(id: string): Promise<Detection | null> {
+    const { getDetectionById } = await import('@/lib/data');
+    const detection = getDetectionById(id);
+    if (!detection) return null;
+    return detection;
+}
 
 
 const threatLevelVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
@@ -23,12 +31,12 @@ const threatLevelVariant: { [key: string]: 'default' | 'secondary' | 'destructiv
   'Desconocido': 'outline',
 };
 
-export default function DetectionDetailPage({
+export default async function DetectionDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const detection = detections.find((det) => det.id === params.id);
+  const detection = await getDetection(params.id);
 
   if (!detection) {
     return <p>Detection not found.</p>;
@@ -59,10 +67,7 @@ export default function DetectionDetailPage({
                 Edit
              </Link>
           </Button>
-          <Button variant="destructive" size="sm">
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
+          <DeleteButton id={detection.id} type="detection" />
         </div>
       </div>
       <div className="grid gap-6 lg:grid-cols-3">

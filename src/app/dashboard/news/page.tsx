@@ -4,6 +4,8 @@ import { NewsArticle } from '@/lib/definitions';
 
 // In a real app, saved articles would be fetched from a user-specific store
 const getSavedArticles = async (): Promise<NewsArticle[]> => {
+    // This should ideally come from a user-specific database.
+    // For now, we return an empty array.
     return [];
 }
 
